@@ -1,0 +1,38 @@
+[tool.poetry]
+name = "invoice-logo-classifier"
+version = "0.1.0"
+description = "Invoice logo classification service combining closed-set image classifier with embedding gallery fallback for unknown vendors."
+authors = ["Vinay Sinnur <vinay@example.com>"]
+readme = "README.md"
+packages = [{include = "invoice_logo_classifier"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pydantic = "^2.0.0"
+pydantic-settings = "^2.0.0"
+fastapi = "^0.100.0"
+uvicorn = "^0.22.0"
+pillow = "^10.0.0"
+pypdf = "^3.10.0"
+python-docx = "^0.8.11"
+numpy = "^1.24.0"
+datasets = "^2.14.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.3.0"
+pytest-cov = "^4.1.0"
+ruff = "^0.1.0"
+mypy = "^1.3.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"

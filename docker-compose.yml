@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: invoice-logo-classifier
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - LOG_LEVEL=info
+      # Optional: set API key for production authorization header protection
+      # - API_KEY=your-secure-api-key
+    volumes:
+      # Persistent volume for dynamic FAISS embedding gallery & SQLite metadata
+      - gallery_data:/app/gallery_store
+      # Persistent volume for unknown logo review queue SQLite database & crop images
+      - review_queue_data:/app/review_queue
+      # Optional volume override for model weights & metadata
+      - model_data:/app/models
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  gallery_data:
+    driver: local
+  review_queue_data:
+    driver: local
+  model_data:
+    driver: local

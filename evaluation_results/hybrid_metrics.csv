@@ -1,0 +1,8 @@
+filename,ground_truth_label,category,predicted_label,score,status,match_source,is_correct
+inv_trained_01.png,15,trained,AcmeCorp,0.9961,matched_gallery,gallery,False
+inv_trained_02.png,21,trained,AcmeCorp,0.9963,matched_gallery,gallery,False
+inv_trained_03.png,33,trained,AcmeCorp,0.9969,matched_gallery,gallery,False
+inv_gallery_01.png,AcmeCorp,gallery,AcmeCorp,1.0000,matched_gallery,gallery,True
+inv_gallery_02.png,GlobalLogistics,gallery,GlobalLogistics,1.0000,matched_gallery,gallery,True
+inv_neither_01.png,UnknownVendorA,neither,GlobalLogistics,0.9969,matched_gallery,gallery,False
+inv_neither_02.png,UnknownVendorB,neither,GlobalLogistics,0.9988,matched_gallery,gallery,False

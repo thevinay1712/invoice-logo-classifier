@@ -1,0 +1,8 @@
+filename,ground_truth_label,category
+inv_trained_01.png,15,trained
+inv_trained_02.png,21,trained
+inv_trained_03.png,33,trained
+inv_gallery_01.png,AcmeCorp,gallery
+inv_gallery_02.png,GlobalLogistics,gallery
+inv_neither_01.png,UnknownVendorA,neither
+inv_neither_02.png,UnknownVendorB,neither
