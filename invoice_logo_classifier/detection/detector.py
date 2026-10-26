@@ -176,22 +176,21 @@ def extract_visual_header_boxes(page_image: Image.Image, header_ratio: float = 0
         for c in contours:
             x, y, bw, bh = cv2.boundingRect(c)
             # Logos are in the left 70% of header, reasonable dimensions
-            if bw > 35 and bh > 15 and bw < w * 0.75 and bh < header_h * 0.90:
-                if bw * bh > 500:
-                    bx = BBox(
-                        xmin=x + margin_x,
-                        ymin=y + margin_y,
-                        xmax=x + margin_x + bw,
-                        ymax=y + margin_y + bh,
-                        confidence=1.15,
-                        label="visual_contour_logo",
-                    )
-                    visual_boxes.append(bx)
+            if bw > 35 and bh > 15 and bw < w * 0.75 and bh < header_h * 0.90 and bw * bh > 500:
+                bx = BBox(
+                    xmin=x + margin_x,
+                    ymin=y + margin_y,
+                    xmax=x + margin_x + bw,
+                    ymax=y + margin_y + bh,
+                    confidence=1.15,
+                    label="visual_contour_logo",
+                )
+                visual_boxes.append(bx)
 
         # Sort visual boxes left-to-right, then top-to-bottom
         visual_boxes.sort(key=lambda b: (b.ymin, b.xmin))
         return visual_boxes
-    except Exception as cv_err:
+    except Exception as cv_err:  # noqa: BLE001
         logger.debug(f"Visual contour logo detection skipped ({cv_err}).")
         return []
 

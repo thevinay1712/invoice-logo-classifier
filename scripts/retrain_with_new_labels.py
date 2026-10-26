@@ -145,7 +145,7 @@ def run_retraining_pipeline(
                         cp = Path(crop_path_str)
                         if cp.exists():
                             shutil.copy2(cp, target_data_dir / "train" / vendor_clean / cp.name)
-                except Exception as db_err:
+                except Exception as db_err:  # noqa: BLE001
                     logger.warning(f"Failed to query review queue for vendor '{vendor_clean}': {db_err}")
 
             # Also copy any gallery seed images matching this vendor

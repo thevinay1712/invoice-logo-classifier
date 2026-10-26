@@ -14,13 +14,13 @@ from invoice_logo_classifier.inference.vendor_organizer import (
 )
 
 __all__ = [
+    "BulkInvoiceVendorClassifier",
     "CandidateResult",
     "ClassificationResult",
     "InvoiceLogoClassifierService",
+    "VendorBatchSummary",
     "classify_invoice",
     "get_classifier_service",
-    "BulkInvoiceVendorClassifier",
-    "VendorBatchSummary",
     "organize_bulk_invoices",
 ]
 

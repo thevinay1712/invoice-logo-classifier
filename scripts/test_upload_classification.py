@@ -2,6 +2,7 @@
 
 import sys
 from pathlib import Path
+
 from PIL import Image, ImageDraw
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -9,7 +10,8 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from invoice_logo_classifier.inference import InvoiceLogoClassifierService
-from scripts.generate_synthetic_dataset import BRAND_COLORS, generate_logo_image
+from scripts.generate_synthetic_dataset import generate_logo_image
+
 
 def create_brand_invoice(path: Path, label: str, doc_id: str) -> Path:
     """Helper to render a clean invoice with the brand's actual visual logo block."""
@@ -62,7 +64,7 @@ def main():
         else:
             status_str = "FAILED"
             
-        print(f"[{status_str}] Vendor: {brand:<12} | Predicted: {str(res.predicted_label):<12} | Status: {res.status:<15} | Score: {res.confidence_or_similarity * 100:.2f}%")
+        print(f"[{status_str}] Vendor: {brand:<12} | Predicted: {res.predicted_label!s:<12} | Status: {res.status:<15} | Score: {res.confidence_or_similarity * 100:.2f}%")
         
     print("=" * 70)
     print(f" Classification Accuracy: {correct_count}/{len(test_brands)} ({correct_count / len(test_brands) * 100:.1f}%)")

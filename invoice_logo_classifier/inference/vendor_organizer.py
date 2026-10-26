@@ -141,7 +141,7 @@ class BulkInvoiceVendorClassifier:
                     }
                 )
 
-            except Exception as err:
+            except Exception as err:  # noqa: BLE001
                 logger.error(f"Failed to classify invoice file '{file_path.name}': {err}")
                 summary.processed_files.append(
                     {

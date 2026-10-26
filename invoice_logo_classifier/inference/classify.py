@@ -189,7 +189,7 @@ class InvoiceLogoClassifierService:
                 text_feats = self._clip_model.encode_text(tokens)
                 self._clip_text_features = text_feats / text_feats.norm(dim=-1, keepdim=True)
             logger.info("OpenCLIP multimodal brand and clutter verification initialized.")
-        except Exception as clip_err:
+        except Exception as clip_err:  # noqa: BLE001
             logger.warning(f"OpenCLIP zero-shot verification not loaded: {clip_err}")
             self._clip_model = None
             self._clip_text_features = None
@@ -210,7 +210,7 @@ class InvoiceLogoClassifierService:
                 if idx >= len(self.class_list):
                     return "clutter", val
                 return self.class_list[idx], val
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.debug(f"OpenCLIP eval failed: {e}")
             return "unknown", 0.0
 
