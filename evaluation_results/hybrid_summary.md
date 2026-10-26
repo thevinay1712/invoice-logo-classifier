@@ -9,7 +9,7 @@ This report evaluates the end-to-end classification accuracy of the combined clo
 | Evaluation Split | Dataset Source | Category | Accuracy / Correct Rate |
 |---|---|---|---|
 | Phase 6 Closed-Set Test | LogoDet-3K Cropped Images | Trained Classes | **85.2%** |
-| **Phase 14 Real Invoices** | **Real Invoice Scans** | **Trained Classes** | **0.0%** |
+| **Phase 14 Real Invoices** | **Real Invoice Scans** | **Trained Classes** | **33.3%** |
 
 > **Domain Gap Observation**: Closed-set accuracy on real invoice documents demonstrates the impact of document noise, header formatting, and scanner compression compared to clean LogoDet-3K cropped images.
 
@@ -17,7 +17,7 @@ This report evaluates the end-to-end classification accuracy of the combined clo
 
 | Vendor Category | Description | Total Samples | Correct | Accuracy / Rate |
 |---|---|---|---|---|
-| `trained` | Invoices from closed-set classes | 3 | 0 | 0.0% |
+| `trained` | Invoices from closed-set classes | 3 | 1 | 33.3% |
 | `gallery` | Invoices from gallery-seeded vendors | 2 | 2 | 100.0% |
 | `neither` | Invoices from unseen vendors | 2 | 0 | 0.0% (Correct Unknown) |
 
@@ -34,12 +34,12 @@ This report evaluates the end-to-end classification accuracy of the combined clo
 
 | Similarity Threshold ($T_{sim}$) | Gallery Match Accuracy | Unseen False Match Rate |
 |---|---|---|
-| 0.40 | 0.0% | 0.0% |
-| 0.50 | 0.0% | 0.0% |
-| 0.60 | 0.0% | 0.0% |
-| 0.70 | 0.0% | 0.0% |
-| 0.75 | 0.0% | 0.0% |
-| 0.80 | 0.0% | 0.0% |
-| 0.85 | 0.0% | 0.0% |
-| 0.90 | 0.0% | 0.0% |
-| 0.95 | 0.0% | 0.0% |
+| 0.40 | 0.0% | 100.0% |
+| 0.50 | 0.0% | 100.0% |
+| 0.60 | 0.0% | 100.0% |
+| 0.70 | 0.0% | 100.0% |
+| 0.75 | 0.0% | 100.0% |
+| 0.80 | 0.0% | 100.0% |
+| 0.85 | 0.0% | 100.0% |
+| 0.90 | 0.0% | 100.0% |
+| 0.95 | 0.0% | 100.0% |

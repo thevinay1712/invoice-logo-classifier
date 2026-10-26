@@ -171,11 +171,54 @@ class InvoiceLogoClassifierService:
         else:
             self.clip_extractor = None
 
+        # Initialize multimodal zero-shot brand verification and document clutter rejection
+        try:
+            import open_clip
+
+            clip_model, _, self._clip_preprocess = open_clip.create_model_and_transforms(
+                "ViT-B-32", pretrained="laion2b_s34b_b79k"
+            )
+            self._clip_model = clip_model.to(self.device).eval()
+            self._clip_tokenizer = open_clip.get_tokenizer("ViT-B-32")
+            prompts = [f"{b} brand logo mark" for b in self.class_list] + [
+                "plain invoice document title text invoice number bill to",
+                "monochrome document header table lines and address text",
+            ]
+            tokens = self._clip_tokenizer(prompts).to(self.device)
+            with torch.no_grad():
+                text_feats = self._clip_model.encode_text(tokens)
+                self._clip_text_features = text_feats / text_feats.norm(dim=-1, keepdim=True)
+            logger.info("OpenCLIP multimodal brand and clutter verification initialized.")
+        except Exception as clip_err:
+            logger.warning(f"OpenCLIP zero-shot verification not loaded: {clip_err}")
+            self._clip_model = None
+            self._clip_text_features = None
+
+    def _eval_clip_zeroshot(self, crop_img: Image.Image) -> tuple[str, float]:
+        """Evaluate crop with OpenCLIP zero-shot across brand classes and clutter prompts."""
+        if getattr(self, "_clip_model", None) is None or getattr(self, "_clip_text_features", None) is None:
+            return "unknown", 0.0
+        try:
+            t = self._clip_preprocess(crop_img.convert("RGB")).unsqueeze(0).to(self.device)
+            with torch.no_grad():
+                feat = self._clip_model.encode_image(t)
+                feat = feat / feat.norm(dim=-1, keepdim=True)
+                sim = (100.0 * feat @ self._clip_text_features.T).softmax(dim=-1).squeeze(0)
+                top_v, top_i = torch.max(sim, dim=0)
+                idx = int(top_i.item())
+                val = float(top_v.item())
+                if idx >= len(self.class_list):
+                    return "clutter", val
+                return self.class_list[idx], val
+        except Exception as e:
+            logger.debug(f"OpenCLIP eval failed: {e}")
+            return "unknown", 0.0
+
     def classify_crop(self, crop_img: Image.Image) -> tuple[str | None, float, str, str]:
         """Classify a single cropped logo image following the 3-tier decision order.
 
         Decision Hierarchy:
-            1. Classifier softmax prob >= closed_set_threshold -> matched_trained (classifier)
+            1. Classifier softmax prob >= closed_set_threshold (or confirmed via multimodal zero-shot) -> matched_trained (classifier)
             2. Gallery best match similarity >= gallery_threshold -> matched_gallery (gallery)
             3. Neither cleared threshold -> unknown (none)
 
@@ -191,9 +234,31 @@ class InvoiceLogoClassifierService:
             top_score = float(top_prob.item())
             top_label = self.class_list[int(top_idx.item())]
 
+        # Multimodal zero-shot brand & clutter verification
+        clip_label, clip_score = self._eval_clip_zeroshot(crop_img)
+
+        # Reject document title text / address block clutter
+        if clip_label == "clutter" and clip_score >= 0.50:
+            return "clutter", clip_score, "unknown", "none"
+
         # Tier 1: Closed-set classifier decision
-        if top_score >= self.closed_set_threshold:
-            return top_label, top_score, "matched_trained", "classifier"
+        is_clip_brand_match = (
+            clip_label in self.class_list
+            and clip_score >= self.closed_set_threshold
+            and clip_score >= 0.65
+        )
+
+        if top_score >= self.closed_set_threshold or is_clip_brand_match:
+            if is_clip_brand_match and (top_label != clip_label or clip_score > top_score):
+                final_label = clip_label
+                final_score = clip_score
+            else:
+                final_label = top_label
+                final_score = top_score
+
+            if final_label and final_label.lower().startswith(("_non_logo", "non_logo", "clutter")):
+                return final_label, final_score, "unknown", "none"
+            return final_label, final_score, "matched_trained", "classifier"
 
         # Tier 2: Dynamic Gallery Fallback
         if self.use_clip_embedding and self.clip_extractor:
@@ -213,7 +278,7 @@ class InvoiceLogoClassifierService:
         # Tier 3: Unknown vendor (route to review queue)
         return top_label, top_score, "unknown", "none"
 
-    def classify_document(self, file_path: Path | str) -> ClassificationResult:
+    def classify_document(self, file_path: Path | str, source_ref: str | None = None) -> ClassificationResult:
         """Run end-to-end ingestion, detection, and decision order classification on a document.
 
         Args:
@@ -234,7 +299,9 @@ class InvoiceLogoClassifierService:
 
         candidate_results = []
         for box in candidate_boxes:
-            crop_img = crop(page_img, box, padding_px=10)
+            b_label = getattr(box, "label", "")
+            pad = 8 if "visual" in b_label else (4 if "compact" in b_label else 10)
+            crop_img = crop(page_img, box, padding_px=pad)
             label, score, status, source = self.classify_crop(crop_img)
             candidate_results.append(
                 CandidateResult(
@@ -248,10 +315,14 @@ class InvoiceLogoClassifierService:
             )
 
         # Select candidate with highest confidence / similarity score
-        # Priority order: matched_trained > matched_gallery > unknown, then highest score
+        # Priority order: matched_trained > matched_gallery > unknown > clutter, then highest score
         def _sort_key(c: CandidateResult):
+            is_clutter = bool(c.predicted_label and c.predicted_label.lower().startswith(("_non_logo", "non_logo", "clutter")))
+            if is_clutter:
+                return (0, c.score)
             status_priority = {"matched_trained": 3, "matched_gallery": 2, "unknown": 1}
-            return (status_priority.get(c.status, 0), c.score)
+            box_conf = getattr(c.bbox, "confidence", 1.0) if hasattr(c, "bbox") else 1.0
+            return (status_priority.get(c.status, 0), c.score * box_conf)
 
         candidate_results.sort(key=_sort_key, reverse=True)
         primary = candidate_results[0]
@@ -271,7 +342,8 @@ class InvoiceLogoClassifierService:
         if primary.status == "unknown":
             try:
                 from invoice_logo_classifier.review import enqueue_for_review
-                enqueue_for_review(result, source_ref=str(target_path))
+                doc_ref = str(source_ref) if source_ref else target_path.name
+                enqueue_for_review(result, source_ref=doc_ref)
             except Exception as err:  # noqa: BLE001 – review queue failure must not block classification result
                 logger.warning(f"Failed to auto-enqueue unknown invoice for review: {err}")
 

@@ -40,18 +40,23 @@ def generate_synthetic_demo_dataset(invoices_dir: Path, csv_path: Path) -> None:
     logger.info(f"Generating synthetic demo evaluation dataset in '{invoices_dir}'...")
 
     # Define test samples across three categories
-    # Category 1: trained classes (e.g., class '15', '21', '33')
+    # Category 1: trained classes (e.g., class 'Amazon', 'FedEx', 'Nike')
     # Category 2: gallery-seeded vendors (e.g., 'AcmeCorp', 'GlobalLogistics')
     # Category 3: neither (e.g., 'UnknownVendorA', 'UnknownVendorB')
     samples = [
-        ("inv_trained_01.png", "15", "trained"),
-        ("inv_trained_02.png", "21", "trained"),
-        ("inv_trained_03.png", "33", "trained"),
+        ("inv_trained_01.png", "Amazon", "trained"),
+        ("inv_trained_02.png", "FedEx", "trained"),
+        ("inv_trained_03.png", "Nike", "trained"),
         ("inv_gallery_01.png", "AcmeCorp", "gallery"),
         ("inv_gallery_02.png", "GlobalLogistics", "gallery"),
         ("inv_neither_01.png", "UnknownVendorA", "neither"),
         ("inv_neither_02.png", "UnknownVendorB", "neither"),
     ]
+
+    try:
+        from scripts.generate_synthetic_dataset import generate_logo_image
+    except ImportError:
+        generate_logo_image = None
 
     with open(csv_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
@@ -65,8 +70,12 @@ def generate_synthetic_demo_dataset(invoices_dir: Path, csv_path: Path) -> None:
 
             # Draw header border and text
             draw.rectangle([40, 40, 760, 180], outline=(200, 200, 200), width=2)
-            draw.rectangle([60, 60, 260, 160], fill=(40, 80, 160))  # Simulated logo box
-            draw.text((70, 100), f"LOGO: {label}", fill=(255, 255, 255))
+            if category == "trained" and generate_logo_image:
+                logo_img = generate_logo_image(label, index=0, size=(200, 100))
+                img.paste(logo_img, (60, 60))
+            else:
+                draw.rectangle([60, 60, 260, 160], fill=(40, 80, 160))  # Simulated logo box
+                draw.text((70, 100), f"LOGO: {label}", fill=(255, 255, 255))
 
             draw.text((300, 60), f"INVOICE DOCUMENT - {label.upper()}", fill=(0, 0, 0))
             draw.text((300, 90), "Invoice #: INV-2026-00928", fill=(100, 100, 100))
@@ -267,7 +276,7 @@ def run_hybrid_evaluation(
         f.write("|---|---|---|\n")
         f.writelines(f"| {s['threshold']} | {s['gallery_accuracy']} | {s['neither_false_match_rate']} |\n" for s in sweep_results)
 
-    logger.info(f"[✓] Hybrid evaluation complete. Report saved to '{summary_md_path}'.")
+    logger.info(f"[OK] Hybrid evaluation complete. Report saved to '{summary_md_path}'.")
 
 
 def main():

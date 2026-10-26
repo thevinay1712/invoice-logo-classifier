@@ -47,7 +47,7 @@ def create_backup(output_dir: Path, base_dir: Path) -> Path:
         print("[!] Warning: No persistent state targets were found to backup!")
     else:
         size_mb = archive_path.stat().st_size / (1024 * 1024)
-        print(f"[✓] Backup complete! Total size: {size_mb:.2f} MB")
+        print(f"[OK] Backup complete! Total size: {size_mb:.2f} MB")
 
     return archive_path
 
@@ -63,7 +63,7 @@ def restore_backup(archive_path: Path, dest_dir: Path) -> None:
             tar.extractall(path=dest_dir, filter="data")
         else:
             tar.extractall(path=dest_dir)
-    print("[✓] Restore complete!")
+    print("[OK] Restore complete!")
 
 
 def main():

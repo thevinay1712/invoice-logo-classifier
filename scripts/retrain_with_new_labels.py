@@ -48,7 +48,7 @@ def rollback_version(version_name: str, model_dir: Path) -> None:
     with open(pointer_file, "w", encoding="utf-8") as f:
         json.dump(pointer_data, f, indent=2)
 
-    logger.info(f"[✓] Active model version successfully set to '{version_name}'.")
+    logger.info(f"[OK] Active model version successfully set to '{version_name}'.")
 
 
 def run_retraining_pipeline(
@@ -94,7 +94,27 @@ def run_retraining_pipeline(
                     dest_file = dest_dir / f"miss_{crop_path.name}"
                     shutil.copy2(crop_path, dest_file)
                     miss_count += 1
-        logger.info(f"Integrated {miss_count} classifier misses into dataset structure.")
+        logger.info(f"Integrated {miss_count} classifier misses into dataset structure from CSV.")
+
+    # Also integrate from exported JSON if present
+    json_export = settings.data_dir / "retraining_misses_export.json"
+    if json_export.exists():
+        try:
+            with open(json_export, "r", encoding="utf-8") as f:
+                exp_data = json.load(f)
+            for item in exp_data.get("items", []):
+                crop_path = Path(item.get("crop_image_path", ""))
+                label = item.get("resolved_label")
+                if crop_path.exists() and label:
+                    dest_dir = target_data_dir / "train" / label
+                    dest_dir.mkdir(parents=True, exist_ok=True)
+                    dest_file = dest_dir / f"miss_{crop_path.name}"
+                    if not dest_file.exists():
+                        shutil.copy2(crop_path, dest_file)
+                        miss_count += 1
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"Could not read misses from JSON export: {e}")
+    logger.info(f"Total classifier misses integrated: {miss_count}.")
 
     # 3. Integrate graduated gallery vendors as new classes
     graduated_count = 0
@@ -108,11 +128,31 @@ def run_retraining_pipeline(
             for split in ["train", "val", "test"]:
                 (target_data_dir / split / vendor_clean).mkdir(parents=True, exist_ok=True)
 
-            # Copy crops from review queue / gallery source refs if available
-            crops_src = settings.review_queue_dir / "crops"
-            if crops_src.exists():
-                for crop_img in crops_src.glob("*.png"):
-                    shutil.copy2(crop_img, target_data_dir / "train" / vendor_clean / crop_img.name)
+            # Copy crops from review queue belonging specifically to this vendor
+            db_path = settings.review_queue_dir / "review_queue.db"
+            if db_path.exists():
+                try:
+                    import sqlite3
+                    conn = sqlite3.connect(str(db_path))
+                    cur = conn.cursor()
+                    cur.execute(
+                        "SELECT crop_image_path FROM review_queue WHERE resolved_label = ? OR (resolved_label IS NULL AND predicted_label = ?)",
+                        (vendor_clean, vendor_clean)
+                    )
+                    rows = cur.fetchall()
+                    conn.close()
+                    for (crop_path_str,) in rows:
+                        cp = Path(crop_path_str)
+                        if cp.exists():
+                            shutil.copy2(cp, target_data_dir / "train" / vendor_clean / cp.name)
+                except Exception as db_err:
+                    logger.warning(f"Failed to query review queue for vendor '{vendor_clean}': {db_err}")
+
+            # Also copy any gallery seed images matching this vendor
+            seeds_dir = settings.base_dir / "data" / "gallery_seeds"
+            if seeds_dir.exists():
+                for seed_img in seeds_dir.glob(f"{vendor_clean}*.*"):
+                    shutil.copy2(seed_img, target_data_dir / "train" / vendor_clean / seed_img.name)
 
             graduated_count += 1
         logger.info(f"Incorporated {graduated_count} graduated vendors as new classes: {graduate_vendors}")
@@ -135,8 +175,7 @@ def run_retraining_pipeline(
         output_dir=new_version_dir,
         epochs=epochs,
         warmup_epochs=warmup_epochs,
-        lr=lr,
-        class_list=updated_classes,
+        learning_rate=lr,
     )
 
     # 6. Regression Check & Comparative Evaluation
@@ -179,7 +218,7 @@ def run_retraining_pipeline(
         for cls_name, p_s, n_s, d in regressions:
             print(f"      - Class '{cls_name}': Previous F1={p_s:.3f} -> New F1={n_s:.3f} (Drop: -{d*100:.1f}%)")
     else:
-        print("  [✓] No catastrophic forgetting regressions detected!")
+        print("  [OK] No catastrophic forgetting regressions detected!")
     print("=" * 65 + "\n")
 
     # 7. Gallery De-duplication: Remove graduated vendors from gallery
@@ -194,7 +233,7 @@ def run_retraining_pipeline(
     # 8. Activate new model version
     rollback_version(next_v_str, target_models_dir)
 
-    logger.info(f"[✓] Retraining pipeline complete. Version '{next_v_str}' is now ACTIVE.")
+    logger.info(f"[OK] Retraining pipeline complete. Version '{next_v_str}' is now ACTIVE.")
     return new_version_dir
 
 

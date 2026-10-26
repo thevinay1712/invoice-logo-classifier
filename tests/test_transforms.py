@@ -60,3 +60,40 @@ def test_random_jpeg_compression(sample_pil_image):
     assert isinstance(compressed, Image.Image)
     assert compressed.size == sample_pil_image.size
     assert compressed.mode == "RGB"
+
+
+def test_random_scanner_banding(sample_pil_image):
+    """Verify RandomScannerBanding applies scanner sensor streaks safely."""
+    from invoice_logo_classifier.augmentation import RandomScannerBanding
+
+    transform = RandomScannerBanding(num_bands_range=(1, 3), p=1.0)
+    banded = transform(sample_pil_image)
+
+    assert isinstance(banded, Image.Image)
+    assert banded.size == sample_pil_image.size
+    assert banded.mode == "RGB"
+
+
+def test_random_low_dpi_simulation(sample_pil_image):
+    """Verify RandomLowDPISimulation downsamples and restores image dimensions."""
+    from invoice_logo_classifier.augmentation import RandomLowDPISimulation
+
+    transform = RandomLowDPISimulation(scale_range=(0.4, 0.6), p=1.0)
+    low_dpi = transform(sample_pil_image)
+
+    assert isinstance(low_dpi, Image.Image)
+    assert low_dpi.size == sample_pil_image.size
+    assert low_dpi.mode == "RGB"
+
+
+def test_random_photocopy_contrast(sample_pil_image):
+    """Verify RandomPhotocopyContrast enhances contrast without altering shape."""
+    from invoice_logo_classifier.augmentation import RandomPhotocopyContrast
+
+    transform = RandomPhotocopyContrast(contrast_factor_range=(1.5, 2.5), p=1.0)
+    photocopied = transform(sample_pil_image)
+
+    assert isinstance(photocopied, Image.Image)
+    assert photocopied.size == sample_pil_image.size
+    assert photocopied.mode == "RGB"
+

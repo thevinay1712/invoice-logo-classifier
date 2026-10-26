@@ -54,4 +54,6 @@ logs/
 *.db
 *.sqlite3
 *.faiss
+data/cached_features_*.pt
+scratch/
 

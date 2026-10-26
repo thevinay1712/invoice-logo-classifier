@@ -174,3 +174,70 @@ def test_get_crop_image_endpoint(api_client, synthetic_png_bytes):
     assert res_crop.status_code == 200
     assert "image/png" in res_crop.headers["content-type"]
     assert len(res_crop.content) > 0
+
+
+def test_classify_batch_endpoint(api_client, synthetic_png_bytes):
+    """Verify POST /invoices/classify-batch accepts multiple files and organizes them by company."""
+    service = get_classifier_service()
+    service.closed_set_threshold = 0.01
+
+    files = [
+        ("files", ("invoice_01.png", synthetic_png_bytes, "image/png")),
+        ("files", ("invoice_02.png", synthetic_png_bytes, "image/png")),
+        ("files", ("invoice_03.txt", b"invalid text file", "text/plain")),
+    ]
+    response = api_client.post("/invoices/classify-batch", files=files)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["total_files"] == 3
+    assert data["processed_count"] == 3
+    assert "groups" in data
+    assert "company_counts" in data
+    assert len(data["items"]) == 3
+
+
+def test_export_batch_zip_endpoint(api_client, synthetic_png_bytes):
+    """Verify POST /invoices/export-batch-zip organizes invoices into company folders in a ZIP."""
+    import zipfile
+
+    service = get_classifier_service()
+    service.closed_set_threshold = 0.01
+
+    files = [
+        ("files", ("batch_inv_01.png", synthetic_png_bytes, "image/png")),
+        ("files", ("batch_inv_02.png", synthetic_png_bytes, "image/png")),
+    ]
+    response = api_client.post("/invoices/export-batch-zip", files=files)
+    assert response.status_code == 200
+    assert "application/zip" in response.headers["content-type"]
+
+    # Verify zip content structure
+    zf = zipfile.ZipFile(io.BytesIO(response.content))
+    namelist = zf.namelist()
+    assert "batch_classification_manifest.csv" in namelist
+    # Invoices should be inside company subfolders (e.g. Adidas/batch_inv_01.png or similar)
+    assert any("/batch_inv_01.png" in name for name in namelist)
+
+
+def test_delete_review_item_endpoint(api_client, synthetic_png_bytes):
+    """Verify DELETE /review-queue/{id} removes the review queue item."""
+    service = get_classifier_service()
+    service.closed_set_threshold = 0.999
+    service.gallery_threshold = 0.999
+
+    files = {"file": ("delete_test.png", synthetic_png_bytes, "image/png")}
+    api_client.post("/invoices/classify", files=files)
+
+    res_list = api_client.get("/review-queue?limit=1")
+    items = res_list.json()
+    assert len(items) > 0
+    item_id = items[0]["id"]
+
+    del_res = api_client.delete(f"/review-queue/{item_id}")
+    assert del_res.status_code == 200
+    assert del_res.json()["status"] == "deleted"
+
+    # Subsequent delete of same ID returns 404
+    del_res2 = api_client.delete(f"/review-queue/{item_id}")
+    assert del_res2.status_code == 404
+

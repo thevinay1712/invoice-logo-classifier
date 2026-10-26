@@ -3,709 +3,1336 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Enterprise Invoice Logo Classifier & Vendor Automation Portal</title>
+  <meta name="description" content="InvoLogo AI — Intelligent Invoice Logo Classifier & Vendor Automation Portal">
+  <title>InvoLogo AI — Intelligent Invoice Logo Classifier</title>
+  <link rel="icon" type="image/svg+xml" href="/static/logo.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    window.DEFAULT_THUMB_SVG = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100"><rect width="200" height="100" fill="%230b0f19"/><text x="50%" y="50%" fill="%2364748b" text-anchor="middle" font-family="sans-serif" font-size="12">Logo Mark</text></svg>';
+    window.API_BASE = '';
+  </script>
   <style>
     :root {
-      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-      --card-bg: rgba(30, 41, 59, 0.75);
-      --card-border: rgba(255, 255, 255, 0.1);
+      --bg-dark: #080c14;
+      --bg-glass: rgba(15, 23, 42, 0.55);
+      --bg-glass-card: rgba(18, 26, 46, 0.65);
+      --bg-glass-hover: rgba(30, 42, 74, 0.75);
+      --bg-glass-input: rgba(10, 16, 30, 0.6);
+      
+      --border-glass: rgba(255, 255, 255, 0.12);
+      --border-glass-light: rgba(255, 255, 255, 0.2);
+      --border-focus: rgba(99, 102, 241, 0.6);
+      
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
-      --primary: #3b82f6;
-      --primary-hover: #2563eb;
-      --accent-green: #10b981;
-      --accent-amber: #f59e0b;
+      --text-dim: #64748b;
+      
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --primary-glow: rgba(99, 102, 241, 0.35);
+      
+      --accent-cyan: #06b6d4;
       --accent-purple: #8b5cf6;
-      --danger: #ef4444;
-      --radius: 14px;
-      --shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.4);
+      --accent-green: #10b981;
+      --accent-green-bg: rgba(16, 185, 129, 0.15);
+      --accent-amber: #f59e0b;
+      --accent-amber-bg: rgba(245, 158, 11, 0.15);
+      --accent-rose: #f43f5e;
+      
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 22px;
+      --radius-full: 9999px;
+      
+      --glass-blur: blur(24px) saturate(190%);
+      --glass-blur-sm: blur(14px);
+      --glass-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.65), inset 0 1px 1px 0 rgba(255, 255, 255, 0.18), inset 0 -1px 1px 0 rgba(0, 0, 0, 0.25);
+      --card-shadow: 0 12px 36px -6px rgba(0, 0, 0, 0.5), inset 0 1px 1px 0 rgba(255, 255, 255, 0.15);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
 
     body {
-      background: var(--bg-gradient);
+      background-color: var(--bg-dark);
       color: var(--text-main);
       min-height: 100vh;
-      padding: 24px;
-    }
-
-    .container {
-      max-width: 1300px;
-      margin: 0 auto;
-    }
-
-    /* Modal Overlay for Login & Shortcuts */
-    .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(15, 23, 42, 0.85);
-      backdrop-filter: blur(16px);
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: opacity 0.3s ease;
-    }
-
-    .login-card {
-      background: rgba(30, 41, 59, 0.95);
-      border: 1px solid var(--card-border);
-      border-radius: 16px;
-      padding: 36px;
-      width: 100%;
-      max-width: 480px;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
-      text-align: center;
+      overflow-x: hidden;
+      line-height: 1.5;
       position: relative;
     }
 
-    .login-icon {
-      width: 56px;
-      height: 56px;
-      background: linear-gradient(135deg, var(--primary), var(--accent-purple));
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 24px;
-      margin: 0 auto 16px;
-      box-shadow: var(--shadow);
+    /* Ambient Glassmorphism Lighting Orbs */
+    .ambient-glow {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.65;
+    }
+    .glow-1 {
+      top: -120px;
+      left: 12%;
+      width: 550px;
+      height: 550px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.22) 0%, transparent 70%);
+      animation: floatSlow 18s ease-in-out infinite alternate;
+    }
+    .glow-2 {
+      top: 30%;
+      right: 5%;
+      width: 480px;
+      height: 480px;
+      background: radial-gradient(circle, rgba(139, 92, 246, 0.18) 0%, transparent 70%);
+      animation: floatSlow 22s ease-in-out infinite alternate-reverse;
+    }
+    .glow-3 {
+      bottom: 5%;
+      left: 20%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.14) 0%, transparent 70%);
+      animation: floatSlow 26s ease-in-out infinite alternate;
     }
 
-    .login-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
-    .login-subtitle { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; }
-
-    .form-group {
-      text-align: left;
-      margin-bottom: 16px;
+    @keyframes floatSlow {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(40px, 30px) scale(1.08); }
     }
 
-    .form-label {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-      display: block;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+    /* Main Container */
+    .app-wrapper {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 24px 28px 60px;
+      position: relative;
+      z-index: 1;
     }
 
-    input[type="text"], input[type="password"], select {
-      width: 100%;
-      padding: 11px 14px;
-      background: rgba(15, 23, 42, 0.8);
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      color: var(--text-main);
-      font-size: 14px;
-      transition: border-color 0.2s;
-    }
-
-    input[type="text"]:focus, input[type="password"]:focus, select:focus {
-      outline: none;
-      border-color: var(--primary);
-    }
-
-    .login-btn {
-      width: 100%;
-      padding: 12px;
-      background: linear-gradient(135deg, var(--primary), var(--primary-hover));
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 8px;
-      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
-      transition: transform 0.1s ease;
-    }
-
-    .login-btn:active { transform: scale(0.98); }
-
-    /* Header */
-    header {
+    /* Glass Navbar */
+    header.glass-navbar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding-bottom: 20px;
-      border-bottom: 1px solid var(--card-border);
-      margin-bottom: 20px;
+      padding: 14px 24px;
+      background: var(--bg-glass);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-lg);
+      margin-bottom: 26px;
+      box-shadow: var(--glass-shadow);
     }
 
-    .brand {
+    .brand-link {
       display: flex;
       align-items: center;
       gap: 14px;
+      text-decoration: none;
+      color: inherit;
+      cursor: pointer;
     }
 
-    .brand-icon {
-      width: 44px;
-      height: 44px;
-      background: linear-gradient(135deg, var(--primary), var(--accent-purple));
-      border-radius: 12px;
+    .brand-logo-img {
+      width: 42px;
+      height: 42px;
+      border-radius: var(--radius-md);
+      box-shadow: 0 4px 18px rgba(99, 102, 241, 0.4);
+      display: block;
+      transition: transform 0.2s ease;
+    }
+    .brand-link:hover .brand-logo-img {
+      transform: scale(1.04);
+    }
+
+    .brand-title-wrap h1 {
+      font-size: 19px;
+      font-weight: 800;
+      letter-spacing: -0.4px;
+      color: #fff;
       display: flex;
       align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 20px;
-      box-shadow: var(--shadow);
+      gap: 7px;
     }
 
-    h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+    .ai-badge {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.6px;
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, var(--primary), var(--accent-cyan));
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(6, 182, 212, 0.35);
+    }
 
-    .user-profile {
+    .brand-title-wrap p {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+
+    .nav-actions {
       display: flex;
       align-items: center;
       gap: 12px;
-      background: rgba(30, 41, 59, 0.8);
-      padding: 6px 14px;
-      border-radius: 30px;
-      border: 1px solid var(--card-border);
     }
 
-    .avatar {
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #6ee7b7;
+      padding: 5px 12px;
+      border-radius: var(--radius-full);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      background: var(--accent-green);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--accent-green);
+      animation: pulseDot 2s infinite ease-in-out;
+    }
+
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.35; transform: scale(0.85); }
+    }
+
+    .header-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-glass);
+      color: var(--text-muted);
+      padding: 7px 14px;
+      border-radius: var(--radius-md);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      backdrop-filter: var(--glass-blur-sm);
+    }
+
+    .header-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+      border-color: var(--border-glass-light);
+      transform: translateY(-1px);
+    }
+
+    /* Strategic Admin Nav Button */
+    .admin-pill-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(139, 92, 246, 0.18));
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      color: #c7d2fe;
+      padding: 7px 15px;
+      border-radius: var(--radius-full);
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 2px 10px rgba(99, 102, 241, 0.2);
+    }
+
+    .admin-pill-btn:hover {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.35), rgba(139, 92, 246, 0.35));
+      border-color: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 0 20px rgba(99, 102, 241, 0.45);
+      transform: translateY(-1px);
+    }
+
+    .admin-pill-btn.active {
+      background: linear-gradient(135deg, var(--primary), var(--accent-purple));
+      color: #ffffff;
+      border-color: rgba(255, 255, 255, 0.35);
+      box-shadow: 0 0 24px rgba(99, 102, 241, 0.6);
+    }
+
+    /* User Profile Pill */
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 4px 12px 4px 5px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border-glass);
+    }
+
+    .avatar-circle {
       width: 28px;
       height: 28px;
-      background: var(--accent-purple);
+      background: linear-gradient(135deg, var(--primary), var(--accent-purple));
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 12px;
-      font-weight: 700;
-    }
-
-    .role-badge {
-      background: rgba(59, 130, 246, 0.2);
-      color: var(--primary);
-      padding: 2px 8px;
-      border-radius: 10px;
       font-size: 11px;
-      font-weight: 600;
+      font-weight: 700;
+      color: #fff;
     }
 
-    .logout-link {
-      color: var(--text-muted);
-      font-size: 12px;
-      cursor: pointer;
-      text-decoration: underline;
-      margin-left: 6px;
-    }
-
-    /* Onboarding Banner */
-    .onboarding-banner {
-      background: rgba(59, 130, 246, 0.1);
-      border: 1px solid rgba(59, 130, 246, 0.3);
-      border-radius: 10px;
-      padding: 14px 18px;
-      margin-bottom: 20px;
+    /* Segmented Navigation Tab Bar (Clean, User Focused) */
+    .nav-tabs-wrapper {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 13px;
-    }
-
-    .onboarding-text {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      color: #93c5fd;
-    }
-
-    /* Nav Tabs */
-    .grid-tabs {
-      display: flex;
-      gap: 12px;
+      justify-content: center;
       margin-bottom: 24px;
+    }
+
+    .nav-tabs-bar {
+      display: inline-flex;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      padding: 5px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border-glass);
+      box-shadow: var(--card-shadow);
+      gap: 4px;
     }
 
     .tab-btn {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
+      background: transparent;
+      border: none;
       color: var(--text-muted);
-      padding: 12px 20px;
-      border-radius: 10px;
+      padding: 9px 24px;
+      border-radius: var(--radius-full);
       cursor: pointer;
       font-weight: 600;
-      font-size: 14px;
-      display: flex;
+      font-size: 13.5px;
+      display: inline-flex;
       align-items: center;
       gap: 8px;
       transition: all 0.2s ease;
+      position: relative;
     }
 
-    .tab-btn:hover { color: var(--text-main); border-color: rgba(255, 255, 255, 0.2); }
+    .tab-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
     .tab-btn.active {
-      background: var(--primary);
-      color: white;
-      border-color: var(--primary);
-      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
+      background: linear-gradient(135deg, var(--primary), #4f46e5);
+      color: #ffffff;
+      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.45);
     }
 
     .badge-count {
-      background: rgba(239, 68, 68, 0.2);
-      color: var(--danger);
-      padding: 2px 8px;
-      border-radius: 12px;
+      background: var(--accent-amber);
+      color: #0f172a;
       font-size: 11px;
-      font-weight: 700;
-      border: 1px solid rgba(239, 68, 68, 0.4);
+      font-weight: 800;
+      padding: 1px 7px;
+      border-radius: 10px;
+      line-height: 1.3;
     }
 
-    .tab-btn.active .badge-count {
-      background: white;
-      color: var(--primary);
-      border: none;
-    }
-
-    /* Section Cards */
-    .section-card {
-      background: var(--card-bg);
-      backdrop-filter: blur(12px);
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius);
-      padding: 24px;
-      margin-bottom: 24px;
-      box-shadow: var(--shadow);
+    /* Glass Section Cards */
+    .glass-card {
+      background: var(--bg-glass-card);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-lg);
+      padding: 30px;
+      box-shadow: var(--glass-shadow);
+      transition: border-color 0.2s ease;
+      position: relative;
     }
 
     .section-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
+      margin-bottom: 22px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-glass);
     }
 
     .section-title {
-      font-size: 18px;
-      font-weight: 600;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
     }
 
     .pill-count {
-      background: rgba(255, 255, 255, 0.1);
-      color: var(--text-muted);
-      padding: 3px 12px;
-      border-radius: 12px;
       font-size: 12px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: var(--radius-full);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-muted);
+      border: 1px solid var(--border-glass);
     }
 
-    /* Upload Zone */
+    /* Glass Drop Zone */
     .upload-zone {
-      border: 2px dashed var(--card-border);
-      border-radius: 12px;
-      padding: 36px;
+      border: 2px dashed rgba(99, 102, 241, 0.35);
+      background: radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.08) 0%, transparent 70%),
+                  rgba(12, 18, 32, 0.45);
+      backdrop-filter: var(--glass-blur-sm);
+      -webkit-backdrop-filter: var(--glass-blur-sm);
+      border-radius: var(--radius-lg);
+      padding: 48px 32px;
       text-align: center;
       cursor: pointer;
-      transition: all 0.2s ease;
-      background: rgba(15, 23, 42, 0.4);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
     }
 
     .upload-zone:hover {
       border-color: var(--primary);
-      background: rgba(59, 130, 246, 0.08);
+      background: radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.15) 0%, transparent 70%),
+                  rgba(18, 27, 48, 0.65);
+      box-shadow: 0 0 40px rgba(99, 102, 241, 0.25), inset 0 1px 2px rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
     }
 
     .upload-icon {
-      font-size: 36px;
-      margin-bottom: 12px;
-    }
-
-    /* Sample Buttons */
-    .sample-chips {
+      width: 64px;
+      height: 64px;
+      background: rgba(99, 102, 241, 0.14);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 50%;
       display: flex;
+      align-items: center;
       justify-content: center;
-      gap: 10px;
-      margin-top: 14px;
+      margin: 0 auto 16px;
+      font-size: 28px;
+      color: var(--primary);
+      box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
     }
 
-    .chip-btn {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--card-border);
+    .upload-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    .upload-subtitle {
+      font-size: 13.5px;
       color: var(--text-muted);
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 12px;
+      max-width: 520px;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 18px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s ease;
+      border: none;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      backdrop-filter: var(--glass-blur-sm);
     }
 
-    .chip-btn:hover {
-      background: rgba(59, 130, 246, 0.2);
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), #4f46e5);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #7174f3, #4338ca);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.55);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
       color: var(--text-main);
-      border-color: var(--primary);
+      border: 1px solid var(--border-glass);
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
     }
 
-    /* Result Layout */
-    .result-split-container {
-      display: grid;
-      grid-template-columns: 1fr 1.3fr;
-      gap: 24px;
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--border-glass-light);
+      transform: translateY(-1px);
+    }
+
+    /* Progress Card */
+    .batch-progress-card {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      border-radius: var(--radius-md);
+      padding: 18px 22px;
       margin-top: 24px;
-      padding: 20px;
-      background: rgba(15, 23, 42, 0.8);
-      border-radius: 12px;
-      border: 1px solid var(--card-border);
-    }
-
-    .preview-panel { display: flex; flex-direction: column; gap: 12px; }
-
-    .image-frame {
-      width: 100%;
-      height: 260px;
-      background: #000;
-      border-radius: 10px;
-      border: 1px solid var(--card-border);
       display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      overflow: hidden;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: var(--card-shadow);
+      animation: fadeIn 0.2s ease;
     }
-
-    .image-frame img { max-width: 100%; max-height: 100%; object-fit: contain; }
-
-    .crop-tag {
-      position: absolute;
-      bottom: 10px;
-      left: 10px;
-      background: rgba(16, 185, 129, 0.9);
-      color: white;
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 700;
-    }
-
-    .details-panel { display: flex; flex-direction: column; gap: 16px; }
-
-    .vendor-title-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--card-border);
-      padding-bottom: 12px;
-    }
-
-    .vendor-title { font-size: 26px; font-weight: 800; color: var(--primary); letter-spacing: -0.5px; }
-    .confidence-box { display: flex; flex-direction: column; gap: 6px; }
 
     .progress-bar-bg {
       width: 100%;
-      height: 10px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 6px;
+      height: 7px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-full);
       overflow: hidden;
     }
 
     .progress-bar-fill {
       height: 100%;
-      background: linear-gradient(90deg, var(--primary), var(--accent-green));
-      width: 0%;
-      transition: width 0.6s ease;
-      border-radius: 6px;
-    }
-
-    .candidate-table { margin-top: 8px; background: rgba(30, 41, 59, 0.5); border-radius: 8px; overflow: hidden; }
-    .candidate-table table th { font-size: 10px; padding: 8px 12px; }
-    .candidate-table table td { padding: 8px 12px; font-size: 12px; }
-
-    .action-bar { display: flex; gap: 10px; margin-top: 10px; }
-
-    /* Review Cards & Filters */
-    .filter-bar {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 16px;
-      border-bottom: 1px solid var(--card-border);
-      padding-bottom: 12px;
-    }
-
-    .filter-btn {
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      padding: 4px 8px;
-    }
-
-    .filter-btn.active { color: var(--primary); border-bottom: 2px solid var(--primary); }
-
-    .queue-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-      gap: 20px;
-    }
-
-    .review-card {
-      background: rgba(15, 23, 42, 0.7);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 18px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-    }
-
-    .crop-preview {
+      background: linear-gradient(90deg, var(--primary), var(--accent-purple), var(--accent-cyan));
+      background-size: 200% 100%;
       width: 100%;
-      height: 150px;
-      background: #000;
-      border-radius: 8px;
-      object-fit: contain;
-      border: 1px solid var(--card-border);
-      transition: transform 0.2s ease;
+      border-radius: var(--radius-full);
+      animation: gradientMove 1.5s infinite linear;
     }
 
-    .crop-preview:hover { transform: scale(1.02); }
+    @keyframes gradientMove {
+      0% { background-position: 100% 0; }
+      100% { background-position: -100% 0; }
+    }
 
-    .card-meta { display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
-    .meta-row { display: flex; justify-content: space-between; }
-    .meta-label { color: var(--text-muted); }
-    .meta-val { font-weight: 600; }
+    /* Results Workspace */
+    .batch-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 28px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
 
-    /* Phase 4 Stat KPI Cards */
+    .batch-title {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .batch-btn-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* KPI Summary Stat Grid */
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 16px;
-      margin-bottom: 20px;
+      margin-bottom: 24px;
     }
 
     .kpi-card {
-      background: rgba(15, 23, 42, 0.6);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 18px;
+      background: rgba(12, 18, 34, 0.6);
+      backdrop-filter: var(--glass-blur-sm);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 4px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--primary), var(--accent-cyan), transparent);
     }
 
     .kpi-val {
       font-size: 26px;
       font-weight: 800;
-      color: var(--accent-green);
+      letter-spacing: -0.5px;
+      color: #fff;
     }
 
     .kpi-label {
       font-size: 12px;
-      color: var(--text-muted);
       font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    /* Company Accordion Group */
+    .company-group-card {
+      background: rgba(15, 22, 40, 0.6);
+      backdrop-filter: var(--glass-blur-sm);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-md);
+      margin-bottom: 14px;
+      overflow: hidden;
+      transition: border-color 0.2s ease;
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.08);
+    }
+
+    .company-group-card:hover {
+      border-color: rgba(99, 102, 241, 0.4);
+    }
+
+    .company-group-header {
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      background: rgba(255, 255, 255, 0.02);
+      transition: background 0.15s ease;
+    }
+
+    .company-group-header:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .company-group-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      font-size: 15px;
+      color: #fff;
+    }
+
+    .company-badge-trained {
+      background: var(--accent-green-bg);
+      color: #6ee7b7;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      font-weight: 600;
+    }
+
+    .company-badge-unknown {
+      background: var(--accent-amber-bg);
+      color: #fcd34d;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      font-weight: 600;
+    }
+
+    .company-invoices-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      padding: 18px 20px;
+      border-top: 1px solid var(--border-glass);
+      background: rgba(8, 12, 22, 0.4);
+    }
+
+    .batch-invoice-card {
+      background: rgba(18, 26, 46, 0.7);
+      backdrop-filter: var(--glass-blur-sm);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: all 0.2s ease;
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+    }
+
+    .batch-invoice-card:hover {
+      border-color: rgba(99, 102, 241, 0.4);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .batch-card-thumb {
+      width: 100%;
+      height: 90px;
+      object-fit: contain;
+      background: #060910;
+      border-radius: 6px;
+      border: 1px solid var(--border-glass);
+      padding: 6px;
+    }
+
+    .batch-card-filename {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #fff;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .batch-card-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+
+    /* Inspector Split Container */
+    .result-split-container {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 22px;
+      margin-top: 24px;
+      background: rgba(12, 18, 34, 0.7);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-md);
+      padding: 22px;
+      box-shadow: var(--glass-shadow);
+      animation: fadeIn 0.25s ease;
+    }
+
+    .preview-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .image-frame {
+      width: 100%;
+      height: 220px;
+      background: #050810;
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      padding: 10px;
+    }
+
+    .image-frame img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .crop-tag {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 10px;
+      font-weight: 700;
       text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: rgba(99, 102, 241, 0.9);
+      color: #fff;
       letter-spacing: 0.5px;
     }
 
-    /* Phase 5 Keyboard Shortcut Badges */
-    .kbd-tag {
-      background: rgba(255, 255, 255, 0.15);
-      border: 1px solid var(--card-border);
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-family: monospace;
+    .details-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .vendor-title-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-glass);
+    }
+
+    .vendor-title {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #fff;
+      margin-top: 2px;
+    }
+
+    .confidence-box {
+      background: rgba(10, 16, 30, 0.6);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+    }
+
+    .meta-label {
+      color: var(--text-muted);
+    }
+
+    .meta-val {
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      font-size: 11.5px;
+      font-weight: 700;
+    }
+
+    .status-trained {
+      background: var(--accent-green-bg);
+      color: #6ee7b7;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .status-gallery {
+      background: rgba(99, 102, 241, 0.15);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+
+    .status-unknown {
+      background: var(--accent-amber-bg);
+      color: #fcd34d;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    /* Candidate Table */
+    .candidate-table {
+      background: rgba(8, 12, 22, 0.5);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      border: 1px solid var(--border-glass);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th {
       font-size: 11px;
+      font-weight: 700;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      padding: 10px 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border-bottom: 1px solid var(--border-glass);
+    }
+
+    td {
+      font-size: 13px;
+      padding: 11px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
       color: var(--text-main);
     }
 
+    /* Review Queue Cards */
+    .queue-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 20px;
+    }
+
+    .review-card {
+      background: rgba(18, 26, 46, 0.7);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: var(--card-shadow);
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .review-card:hover {
+      border-color: rgba(99, 102, 241, 0.45);
+      transform: translateY(-2px);
+    }
+
+    .delete-review-btn {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      background: rgba(244, 63, 94, 0.15);
+      border: 1px solid rgba(244, 63, 94, 0.35);
+      color: #fca5a5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      z-index: 10;
+    }
+
+    .delete-review-btn:hover {
+      background: rgba(244, 63, 94, 0.4);
+      color: #ffffff;
+      border-color: rgba(244, 63, 94, 0.7);
+      transform: scale(1.1);
+      box-shadow: 0 0 14px rgba(244, 63, 94, 0.45);
+    }
+
+
+    .crop-preview {
+      width: 100%;
+      height: 130px;
+      object-fit: contain;
+      background: #050810;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-glass);
+      padding: 8px;
+    }
+
+    .card-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: rgba(8, 12, 22, 0.5);
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+    }
+
+    select, input[type="text"] {
+      width: 100%;
+      padding: 10px 14px;
+      background: var(--bg-glass-input);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-sm);
+      color: #fff;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    select:focus, input[type="text"]:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .btn-group .btn {
+      flex: 1;
+      justify-content: center;
+      font-size: 12px;
+      padding: 8px 10px;
+    }
+
+    /* Admin Workspace Banner & Sub-Tabs */
+    .admin-banner {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15));
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .admin-subnav-bar {
+      display: inline-flex;
+      background: rgba(8, 12, 22, 0.6);
+      padding: 4px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border-glass);
+      gap: 4px;
+      margin-bottom: 20px;
+    }
+
+    .admin-subtab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 7px 18px;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 12.5px;
+      transition: all 0.15s ease;
+    }
+
+    .admin-subtab-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .admin-subtab-btn.active {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 2px 10px rgba(99, 102, 241, 0.4);
+    }
+
+    /* Modals & Overlays */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(5, 8, 15, 0.82);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .modal-card {
+      background: rgba(18, 26, 46, 0.88);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--border-glass-light);
+      border-radius: var(--radius-lg);
+      padding: 30px;
+      width: 100%;
+      max-width: 580px;
+      box-shadow: 0 30px 70px -15px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+      position: relative;
+    }
+
+    .modal-close-btn {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 20px;
+      cursor: pointer;
+      transition: color 0.15s;
+    }
+
+    .modal-close-btn:hover {
+      color: #fff;
+    }
+
+    .brands-pill-cloud {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 8px;
+      max-height: 380px;
+      overflow-y: auto;
+      padding-right: 6px;
+      margin-top: 14px;
+    }
+
+    .brands-pill-cloud::-webkit-scrollbar {
+      width: 5px;
+    }
+    .brands-pill-cloud::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+    }
+
+    .brand-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-glass);
+      color: #e2e8f0;
+      padding: 7px 11px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 500;
+      transition: all 0.15s ease;
+    }
+
+    .brand-pill:hover {
+      background: rgba(99, 102, 241, 0.2);
+      border-color: rgba(99, 102, 241, 0.4);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
+    /* Toast Notification */
     .toast {
       position: fixed;
       bottom: 24px;
       right: 24px;
-      background: rgba(16, 185, 129, 0.95);
-      color: white;
-      padding: 12px 20px;
-      border-radius: 10px;
-      font-size: 13px;
+      background: rgba(18, 26, 46, 0.95);
+      backdrop-filter: blur(16px);
+      color: #fff;
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      border-radius: var(--radius-md);
+      padding: 12px 22px;
+      font-size: 13.5px;
       font-weight: 600;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-      z-index: 2000;
-      transition: opacity 0.3s ease;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.7);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: slideUpToast 0.25s ease;
     }
 
-    /* Status Badges */
-    .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; }
-    .status-unknown { background: rgba(245, 158, 11, 0.2); color: var(--accent-amber); border: 1px solid rgba(245, 158, 11, 0.4); }
-    .status-trained { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); border: 1px solid rgba(16, 185, 129, 0.4); }
-    .status-gallery { background: rgba(139, 92, 246, 0.2); color: var(--accent-purple); border: 1px solid rgba(139, 92, 246, 0.4); }
+    @keyframes slideUpToast {
+      from { transform: translateY(14px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
 
-    .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
-    .btn { padding: 9px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; border: none; cursor: pointer; transition: background 0.2s ease; }
-    .btn-primary { background: var(--primary); color: white; }
-    .btn-primary:hover { background: var(--primary-hover); }
-    .btn-secondary { background: rgba(255, 255, 255, 0.1); color: var(--text-main); }
-    .btn-secondary:hover { background: rgba(255, 255, 255, 0.2); }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
 
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--card-border); }
-    th { color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
-    tr:hover td { background: rgba(255, 255, 255, 0.02); }
-
-    .hidden { display: none !important; }
+    .hidden {
+      display: none !important;
+    }
   </style>
 </head>
 <body>
 
+  <!-- Ambient Glassmorphism Lights -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+  <div class="ambient-glow glow-3"></div>
+
   <!-- Toast Notification Container -->
-  <div id="toastContainer" class="hidden toast">✓ Item resolved successfully!</div>
+  <div id="toastContainer" class="hidden toast">✓ Action completed!</div>
 
-  <!-- Phase 5: Keyboard Shortcuts Modal Overlay -->
-  <div id="shortcutModal" class="modal-overlay hidden">
-    <div class="login-card" style="text-align: left;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <div class="login-title" style="margin-bottom: 0;">⌨️ Keyboard Shortcuts</div>
-        <button style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 18px;" onclick="document.getElementById('shortcutModal').classList.add('hidden')">✕</button>
+  <!-- Supported Brands Catalog Modal -->
+  <div id="supportedCompaniesPanel" class="modal-overlay hidden">
+    <div class="modal-card">
+      <button class="modal-close-btn" onclick="toggleSupportedCompaniesWidget()">✕</button>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <div style="font-size: 18px; font-weight: 700;">🏢 Supported Brand Network</div>
+        <span class="pill-count" id="cornerBrandCount">30 Brands</span>
       </div>
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Core closed-set neural network classes with automated zero-shot verification.</p>
       
-      <div style="display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
-        <div class="meta-row"><span class="meta-label">Switch to Upload & Process:</span> <span class="kbd-tag">1</span></div>
-        <div class="meta-row"><span class="meta-label">Switch to Review Queue:</span> <span class="kbd-tag">2</span></div>
-        <div class="meta-row"><span class="meta-label">Switch to Vendor Catalog:</span> <span class="kbd-tag">3</span></div>
-        <div class="meta-row"><span class="meta-label">Switch to Analytics:</span> <span class="kbd-tag">4</span></div>
-        <div class="meta-row"><span class="meta-label">Open Upload Dialog:</span> <span class="kbd-tag">U</span></div>
-        <div class="meta-row"><span class="meta-label">Toggle Shortcuts Window:</span> <span class="kbd-tag">Ctrl + K</span></div>
+      <input type="text" id="cornerBrandSearch" placeholder="🔍 Search brands (e.g. Amazon, Google, Nike)..." oninput="filterCornerBrands()">
+
+      <div class="brands-pill-cloud" id="cornerBrandList">
+        <!-- Populated via JS -->
       </div>
     </div>
   </div>
 
-  <!-- Phase 1: Authentication Modal Overlay -->
-  <div id="loginModal" class="modal-overlay">
-    <div class="login-card">
-      <div class="login-icon">IL</div>
-      <div class="login-title">Invoice Classifier Portal</div>
-      <div class="login-subtitle">Sign in to access automated vendor logo classification and review tools.</div>
+  <!-- Main App Shell -->
+  <div class="app-wrapper">
+    
+    <!-- Top Glass Navbar -->
+    <header class="glass-navbar">
+      <a class="brand-link" onclick="showUserView('tester')" title="InvoLogo AI — Home">
+        <img src="/static/logo.svg" alt="InvoLogo AI" class="brand-logo-img">
+        <div class="brand-title-wrap">
+          <h1>InvoLogo <span class="ai-badge">AI</span></h1>
+          <p>Automated Corporate Invoice Recognition & Vendor Routing</p>
+        </div>
+      </a>
       
-      <form onsubmit="handleLogin(event)">
-        <div class="form-group">
-          <label class="form-label">Username / Email</label>
-          <input type="text" id="loginUsername" value="ap.clerk@company.com" required>
+      <div class="nav-actions">
+        <div class="status-pill">
+          <span class="pulse-dot"></span>
+          <span>Engine Online</span>
         </div>
+        
+        <button class="header-btn" onclick="toggleSupportedCompaniesWidget(true)" title="View all 30 supported brands">
+          🏢 Brands (30)
+        </button>
 
-        <div class="form-group">
-          <label class="form-label">Password</label>
-          <input type="password" value="••••••••••••" required>
-        </div>
+        <!-- Strategically Positioned Admin Button -->
+        <button class="admin-pill-btn" onclick="toggleAdminPortal()" id="adminNavBtn" title="Access Neural Backbone & System Analytics">
+          <span>⚙️</span>
+          <span>Admin</span>
+        </button>
 
-        <div class="form-group">
-          <label class="form-label">Select Workspace Role</label>
-          <select id="loginRole">
-            <option value="user" selected>Accounts Payable Clerk (Standard User)</option>
-            <option value="admin">System Administrator / QA Reviewer</option>
-          </select>
-        </div>
-
-        <button type="submit" class="login-btn">Sign In to Dashboard →</button>
-      </form>
-    </div>
-  </div>
-
-  <div class="container">
-    <header>
-      <div class="brand">
-        <div class="brand-icon">IL</div>
-        <div>
-          <h1>Invoice Logo Classifier</h1>
-          <p style="font-size: 12px; color: var(--text-muted);">Enterprise Automated Vendor Classification Platform</p>
-        </div>
-      </div>
-      
-      <div style="display: flex; align-items: center; gap: 16px;">
-        <button class="chip-btn" onclick="document.getElementById('shortcutModal').classList.remove('hidden')">⌨️ Shortcuts <span class="kbd-tag">Ctrl+K</span></button>
-        <div class="user-profile" id="userProfileWidget">
-          <div class="avatar" id="userAvatar">AP</div>
-          <span style="font-size: 13px; font-weight: 600;" id="userName">AP Clerk</span>
-          <span class="role-badge" id="userRoleBadge">User View</span>
-          <span class="logout-link" onclick="handleLogout()">Sign Out</span>
+        <div class="user-pill" title="Active AP Specialist Session">
+          <div class="avatar-circle" id="userAvatar">AP</div>
+          <span style="font-size: 12.5px; font-weight: 600;" id="userName">ap.clerk</span>
         </div>
       </div>
     </header>
 
-    <!-- Onboarding Banner -->
-    <div class="onboarding-banner" id="onboardingBanner">
-      <div class="onboarding-text">
-        <span>💡</span>
-        <span><b>Quick Start Guide:</b> Upload invoice receipts under <b>"1. Upload & Process"</b> to instantly extract & identify vendor logos. Low-confidence logos are flagged under <b>"2. Review & Approvals"</b> for human verification.</span>
-      </div>
-      <button style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px;" onclick="document.getElementById('onboardingBanner').classList.add('hidden')">✕</button>
+    <!-- User View Navigation Tabs (Pure, Uncluttered, Purposeful) -->
+    <div class="nav-tabs-wrapper" id="userTabsContainer">
+      <nav class="nav-tabs-bar">
+        <button class="tab-btn active" onclick="showUserView('tester')" id="tabBtn-tester">
+          <span>📄 Ingestion & Invoices</span>
+        </button>
+        <button class="tab-btn" onclick="showUserView('review')" id="tabBtn-review">
+          <span>⏳ Review Queue</span>
+          <span class="badge-count" id="navReviewBadge">0</span>
+        </button>
+      </nav>
     </div>
 
-    <!-- Navigation Tabs -->
-    <div class="grid-tabs">
-      <button class="tab-btn active" onclick="showTab('tester')" id="tabBtn-tester">
-        <span>📤 1. Upload & Process</span>
-      </button>
-      <button class="tab-btn" onclick="showTab('review')" id="tabBtn-review">
-        <span>⏳ 2. Review & Approvals</span>
-        <span class="badge-count" id="navReviewBadge">0</span>
-      </button>
-      <button class="tab-btn" onclick="showTab('vendors')" id="tabBtn-vendors">
-        <span>🏢 3. Vendor Database</span>
-      </button>
-      <button class="tab-btn" onclick="showTab('classes')" id="tabBtn-classes">
-        <span>📊 4. System Analytics</span>
-      </button>
-    </div>
-
-    <!-- Tab 1: Upload & Process -->
-    <div id="tab-tester" class="section-card">
+    <!-- VIEW 1: Document Ingestion & Batch Sorting Studio -->
+    <div id="view-tester" class="glass-card">
       <div class="section-header">
         <div class="section-title">
-          <span>Upload & Classify Invoice Document</span>
+          <span>Document Ingestion Studio</span>
+        </div>
+        <span class="pill-count" style="color: #a5b4fc; background: rgba(99, 102, 241, 0.15); border-color: rgba(99, 102, 241, 0.3);">
+          Auto Header Crop & Multi-Vendor Sorting
+        </span>
+      </div>
+
+      <!-- Spacious Glass Drag & Drop Zone -->
+      <div class="upload-zone" onclick="document.getElementById('fileInput').click()" ondragover="event.preventDefault();" ondrop="handleDrop(event)">
+        <div class="upload-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="12" y1="18" x2="12" y2="12"></line>
+            <polyline points="9 15 12 12 15 15"></polyline>
+          </svg>
+        </div>
+        <div class="upload-title">Drop invoice receipts or click to upload</div>
+        <div class="upload-subtitle">
+          Upload single invoices or batch multi-vendor folders (.pdf, .png, .jpg, .docx). The neural engine extracts candidate logo marks and automatically categorizes documents by corporate brand.
+        </div>
+        <input type="file" id="fileInput" class="hidden" multiple onchange="handleBatchUpload(this.files)" accept=".pdf,.docx,.doc,.png,.jpg,.jpeg,.tiff,.bmp">
+      </div>
+
+      <!-- Processing Progress Card -->
+      <div id="batchProgressCard" class="hidden batch-progress-card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-weight: 700; font-size: 13.5px; display: flex; align-items: center; gap: 9px;">
+            <span>⚡</span>
+            <span>Running neural inference and organizing documents...</span>
+          </span>
+          <span id="batchProgressCount" style="font-size: 12px; color: var(--text-muted);">Processing...</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div id="batchProgressBar" class="progress-bar-fill"></div>
         </div>
       </div>
 
-      <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
-        <div class="upload-icon">📄</div>
-        <p style="font-weight: 600; font-size: 15px; margin-bottom: 6px;">Click or drag receipt/invoice file here (.pdf, .png, .jpg)</p>
-        <p style="color: var(--text-muted); font-size: 12px;">Runs automated logo detection, fine-tuned neural network classification, and vector gallery lookup.</p>
-        <input type="file" id="fileInput" class="hidden" onchange="testClassifyFile(this.files[0])" accept=".pdf,.docx,.doc,.png,.jpg,.jpeg,.tiff,.bmp">
+      <!-- Batch Organization Workspace -->
+      <div id="batchResultsWorkspace" class="hidden">
+        
+        <div class="batch-header-bar">
+          <div>
+            <div class="batch-title">
+              <span>📁 Invoices Organized by Vendor</span>
+              <span class="pill-count" id="batchTotalBadge">0 Invoices</span>
+            </div>
+            <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+              Documents successfully sorted into confirmed corporate categories and human review queues.
+            </p>
+          </div>
+
+          <div class="batch-btn-group">
+            <button class="btn btn-primary" onclick="exportOrganizedZip()" title="Download a ZIP archive with invoices sorted into company subfolders">
+              📦 Download Organized ZIP
+            </button>
+            <button class="btn btn-secondary" onclick="exportBatchCsv()" title="Export CSV summary report">
+              📊 Export CSV Manifest
+            </button>
+            <button class="btn btn-secondary" onclick="document.getElementById('fileInput').click()">
+              ➕ Upload More
+            </button>
+          </div>
+        </div>
+
+        <!-- KPI Summary Cards for Current Batch -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-val" id="kpiBatchTotalFiles">0</div>
+            <div class="kpi-label">Total Invoices</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-val" id="kpiBatchTotalCompanies" style="color: #818cf8;">0</div>
+            <div class="kpi-label">Distinct Vendors</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-val" id="kpiBatchVerifiedCount" style="color: var(--accent-green);">0</div>
+            <div class="kpi-label">Verified Matches</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-val" id="kpiBatchReviewCount" style="color: var(--accent-amber);">0</div>
+            <div class="kpi-label">Review Queue</div>
+          </div>
+        </div>
+
+        <!-- Dynamic Company Group Folders -->
+        <div id="companyGroupsContainer"></div>
+
       </div>
 
-      <div class="sample-chips">
-        <span style="font-size: 12px; color: var(--text-muted); align-self: center;">Quick Demo Samples:</span>
-        <button class="chip-btn" onclick="testSample('adidas')">⚡ Adidas Receipt</button>
-        <button class="chip-btn" onclick="testSample('amazon')">⚡ Amazon Invoice</button>
-        <button class="chip-btn" onclick="testSample('nike')">⚡ Nike Receipt</button>
-      </div>
-
-      <!-- Result Split Layout -->
+      <!-- Inspector Split Layout for Detailed View -->
       <div id="testerResult" class="hidden result-split-container">
         
         <div class="preview-panel">
-          <div style="font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Extracted Logo Mark Crop:</div>
+          <div style="font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px;">Extracted Logo Mark Candidate:</div>
           <div class="image-frame">
-            <img id="resPreviewImg" src="" alt="Cropped Logo Mark" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'200\\' height=\\'100\\'><rect width=\\'200\\' height=\\'100\\' fill=\\'%23111\\'/><text x=\\'50%\\' y=\\'50%\\' fill=\\'%23888\\' text-anchor=\\'middle\\'>Logo Crop</text></svg>'"/>
-            <span class="crop-tag" id="resCropTag">Full Header Candidate</span>
+            <img id="resPreviewImg" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='100'%3E%3Crect width='200' height='100' fill='%230b0f19'/%3E%3C/svg%3E" alt="Cropped Logo Mark" onerror="this.src=window.DEFAULT_THUMB_SVG"/>
+            <span class="crop-tag" id="resCropTag">Verified Logo Mark</span>
           </div>
         </div>
 
         <div class="details-panel">
           <div class="vendor-title-bar">
             <div>
-              <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Predicted Vendor</div>
-              <div class="vendor-title" id="resLabel">ADIDAS</div>
+              <div style="font-size: 11px; color: var(--text-dim); text-transform: uppercase; font-weight: 700;">Identified Vendor</div>
+              <div class="vendor-title" id="resLabel">GOOGLE</div>
             </div>
             <div id="resStatusBadge">-</div>
           </div>
 
           <div class="confidence-box">
             <div class="meta-row">
-              <span class="meta-label">AI Confidence Score:</span>
-              <span class="meta-val" id="resScoreText">68.30%</span>
+              <span class="meta-label">Neural Network Confidence:</span>
+              <span class="meta-val" id="resScoreText">99.80%</span>
             </div>
-            <div class="progress-bar-bg">
-              <div class="progress-bar-fill" id="resScoreBar" style="width: 68%;"></div>
+            <div class="progress-bar-bg" style="height: 8px;">
+              <div class="progress-bar-fill" id="resScoreBar" style="width: 99%;"></div>
             </div>
           </div>
 
@@ -713,9 +1340,9 @@
             <table>
               <thead>
                 <tr>
-                  <th>Region Candidate</th>
-                  <th>Detection BBox</th>
-                  <th>Score</th>
+                  <th>Detected Candidate</th>
+                  <th>Bounding Box</th>
+                  <th>Confidence</th>
                 </tr>
               </thead>
               <tbody id="resCandidatesBody">
@@ -724,118 +1351,156 @@
             </table>
           </div>
 
-          <div class="action-bar">
-            <button class="btn btn-primary" onclick="showToast('✓ Vendor match confirmed and logged!')">✓ Confirm Vendor</button>
-            <button class="btn btn-secondary" onclick="exportJsonResult()">📥 Export JSON</button>
+          <div style="display: flex; gap: 10px; margin-top: 6px;">
+            <button class="btn btn-primary" onclick="showToast('✓ Vendor identification confirmed and audited!')">✓ Confirm Vendor</button>
+            <button class="btn btn-secondary" onclick="exportJsonResult()">📥 Export Raw JSON</button>
           </div>
         </div>
 
       </div>
     </div>
 
-    <!-- Tab 2: Review Queue & Approvals -->
-    <div id="tab-review" class="section-card hidden">
+    <!-- VIEW 2: Review Queue & Human Approvals -->
+    <div id="view-review" class="glass-card hidden">
       <div class="section-header">
         <div class="section-title">
           <span>Pending Unknown Invoices for Verification</span>
           <span class="pill-count" id="reviewCount">0 items</span>
         </div>
-        <button class="btn btn-secondary" onclick="loadReviewQueue()">Refresh Queue</button>
+        <button class="btn btn-secondary" onclick="loadReviewQueue()">🔄 Refresh Queue</button>
       </div>
 
-      <div class="filter-bar">
-        <button class="filter-btn active">⏳ Pending Review</button>
-        <button class="filter-btn">✓ Recently Approved</button>
-        <button class="filter-btn">All Queue Logs</button>
-      </div>
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 22px;">
+        Invoices with low AI confidence or unseen corporate marks are flagged here. Approving as <b>New Vendor</b> registers the logo directly into the live FAISS vector gallery for instant future recognition without retraining downtime.
+      </p>
 
       <div class="queue-grid" id="queueContainer">
         <p style="color: var(--text-muted); font-size: 14px;">Loading pending queue...</p>
       </div>
     </div>
 
-    <!-- Tab 3: Known Vendors Database -->
-    <div id="tab-vendors" class="section-card hidden">
-      <div class="section-header">
-        <div class="section-title">
-          <span>Registered Dynamic Gallery Vendors</span>
+    <!-- VIEW 3: Dedicated Admin Portal (Accessed via Strategic Admin Button) -->
+    <div id="view-admin" class="glass-card hidden">
+      
+      <div class="admin-banner">
+        <div>
+          <div style="font-size: 16px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px;">
+            <span>⚙️</span>
+            <span>Admin Console — System Analytics & Neural Engine</span>
+          </div>
+          <p style="font-size: 12.5px; color: #cbd5e1; margin-top: 3px;">
+            Deep model performance metrics, class confusion benchmarks, and dynamic vector memory bank management.
+          </p>
         </div>
-        <span class="pill-count" id="vendorsCount">0 vendors</span>
+        <button class="btn btn-secondary" onclick="showUserView('tester')" style="background: rgba(255,255,255,0.08);">
+          ← Back to Invoices
+        </button>
       </div>
 
-      <div style="margin-bottom: 16px;">
-        <input type="text" id="vendorSearchInput" placeholder="🔍 Search vendor by name (e.g. Adidas)..." oninput="filterVendorTable()" />
-      </div>
-
-      <table>
-        <thead>
-          <tr>
-            <th>Vendor Label</th>
-            <th>Visual Fingerprint Count</th>
-            <th>System Status</th>
-          </tr>
-        </thead>
-        <tbody id="vendorsTableBody">
-          <tr><td colspan="3" style="color: var(--text-muted);">Loading vendor catalog...</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Tab 4: System Analytics & Model KPIs -->
-    <div id="tab-classes" class="section-card hidden">
-      <div class="section-header">
-        <div class="section-title">
-          <span>Supported Brand Classes & Performance Metrics</span>
-          <span class="status-badge status-trained">ResNet50 Fine-Tuned</span>
-        </div>
-        <span class="pill-count" id="classesCount">30 classes</span>
-      </div>
-
+      <!-- Admin KPI Grid -->
       <div class="kpi-grid">
         <div class="kpi-card">
-          <div class="kpi-val">100.0%</div>
-          <div class="kpi-label">Validation Accuracy</div>
+          <div class="kpi-val" style="color: var(--accent-green);">99.67%</div>
+          <div class="kpi-label">Validation Top-1 Accuracy</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-val" style="color: var(--primary);">30</div>
-          <div class="kpi-label">Core Brand Classes</div>
+          <div class="kpi-val" style="color: #818cf8;">30</div>
+          <div class="kpi-label">Closed-Set Brands</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-val" style="color: var(--accent-purple);">ResNet50</div>
-          <div class="kpi-label">Model Backbone</div>
+          <div class="kpi-val" style="color: var(--accent-purple);">ResNet-50</div>
+          <div class="kpi-label">Neural Backbone</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-val" style="color: var(--accent-amber);">~45ms</div>
-          <div class="kpi-label">Avg Inference Speed</div>
+          <div class="kpi-val" style="color: var(--accent-amber);">~38ms</div>
+          <div class="kpi-label">Inference Latency</div>
         </div>
       </div>
 
-      <div style="margin-bottom: 16px;">
-        <input type="text" id="classSearchInput" placeholder="🔍 Filter core brand classes..." oninput="filterClassesTable()" />
+      <!-- Admin Sub-Navigation Pills -->
+      <div style="margin-bottom: 20px;">
+        <div class="admin-subnav-bar">
+          <button class="admin-subtab-btn active" onclick="switchAdminSection('analytics')" id="subtabBtn-analytics">
+            📊 Class Performance & Metrics
+          </button>
+          <button class="admin-subtab-btn" onclick="switchAdminSection('memory')" id="subtabBtn-memory">
+            🏢 Dynamic Vector Gallery (<span id="adminGalleryCount">9 vectors</span>)
+          </button>
+        </div>
       </div>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Class Name</th>
-            <th>Precision (%)</th>
-            <th>Recall (%)</th>
-            <th>F1 Score (%)</th>
-            <th>Support Count</th>
-          </tr>
-        </thead>
-        <tbody id="classesTableBody">
-          <tr><td colspan="5" style="color: var(--text-muted);">Loading analytics data...</td></tr>
-        </tbody>
-      </table>
+      <!-- Sub-Section A: System Analytics & Class Metrics -->
+      <div id="admin-sec-analytics">
+        <div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap;">
+          <input type="text" id="classSearchInput" style="max-width: 360px;" placeholder="🔍 Filter supported brand classes..." oninput="filterClassesTable()" />
+          <span class="pill-count" id="classesCount">30 classes</span>
+        </div>
+
+        <div class="candidate-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Class Name</th>
+                <th>Precision</th>
+                <th>Recall</th>
+                <th>F1 Score</th>
+                <th>Support Samples</th>
+              </tr>
+            </thead>
+            <tbody id="classesTableBody">
+              <tr><td colspan="5" style="color: var(--text-muted);">Loading analytics data...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Sub-Section B: Dynamic Vector Gallery -->
+      <div id="admin-sec-memory" class="hidden">
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+          High-dimensional embedding representations indexed in FAISS (<code style="color: #a5b4fc;">IndexFlatIP</code>). Vendor marks confirmed by human review match instantaneously with zero model deployment delay.
+        </p>
+
+        <div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap;">
+          <input type="text" id="vendorSearchInput" style="max-width: 360px;" placeholder="🔍 Search memory bank vendors..." oninput="filterVendorTable()" />
+          <span class="pill-count" id="vendorsCount">0 vendors</span>
+        </div>
+
+        <div class="candidate-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Vendor Label</th>
+                <th>Vector Embeddings</th>
+                <th>Recognition Pipeline</th>
+              </tr>
+            </thead>
+            <tbody id="vendorsTableBody">
+              <tr><td colspan="3" style="color: var(--text-muted);">Loading vendor catalog...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
+
   </div>
 
+  <!-- Hidden backward-compatibility elements -->
+  <div id="tab-classes" class="hidden"></div>
+  <div id="tab-vendors" class="hidden"></div>
+  <div id="supportedCompaniesWidget" class="hidden"></div>
+  <button id="supportedCompaniesToggleBtn" class="hidden"></button>
+  <span id="cornerBrandCountBadge" class="hidden">30</span>
+
   <script>
-    const API_BASE = '';
+    const API_BASE = window.API_BASE || '';
+    const DEFAULT_THUMB_SVG = window.DEFAULT_THUMB_SVG;
     let lastClassificationData = null;
+    let currentBatchFiles = [];
+    let lastBatchData = null;
     let rawVendorsList = [];
     let rawClassesList = [];
+    let currentActiveView = 'tester'; // 'tester', 'review', or 'admin'
 
     const CORE_BRAND_OPTIONS = [
       "Adidas", "Adobe", "Airbnb", "Amazon", "Apple", "Cisco", "CocaCola",
@@ -851,57 +1516,91 @@
       setTimeout(() => { toast.classList.add('hidden'); }, 3000);
     }
 
-    function handleLogin(e) {
-      e.preventDefault();
-      const username = document.getElementById('loginUsername').value || 'User';
-      const role = document.getElementById('loginRole').value;
-
-      localStorage.setItem('ilc_user', username);
-      localStorage.setItem('ilc_role', role);
-
-      applyUserSession();
-      document.getElementById('loginModal').classList.add('hidden');
-    }
-
-    function handleLogout() {
-      localStorage.removeItem('ilc_user');
-      localStorage.removeItem('ilc_role');
-      document.getElementById('loginModal').classList.remove('hidden');
-    }
-
-    function applyUserSession() {
-      const user = localStorage.getItem('ilc_user') || 'AP Clerk';
-      const role = localStorage.getItem('ilc_role') || 'user';
-
-      document.getElementById('userName').innerText = user.split('@')[0];
-      document.getElementById('userAvatar').innerText = user.substring(0, 2).toUpperCase();
-      document.getElementById('userRoleBadge').innerText = role === 'admin' ? 'Admin Manager' : 'AP Clerk';
-
-      showTab(role === 'admin' ? 'review' : 'tester');
-    }
-
-    function showTab(tabName) {
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll('.section-card').forEach(sec => sec.classList.add('hidden'));
-
-      const activeBtn = document.getElementById('tabBtn-' + tabName);
+    function showUserView(viewName) {
+      currentActiveView = viewName;
+      
+      // Update Tab Pill styles
+      document.querySelectorAll('#userTabsContainer .tab-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById('tabBtn-' + viewName);
       if (activeBtn) activeBtn.classList.add('active');
 
-      const sec = document.getElementById('tab-' + tabName);
-      if (sec) sec.classList.remove('hidden');
+      // Admin button inactive
+      const adminBtn = document.getElementById('adminNavBtn');
+      if (adminBtn) adminBtn.classList.remove('active');
 
-      if (tabName === 'review') loadReviewQueue();
-      if (tabName === 'classes') loadTrainedClasses();
-      if (tabName === 'vendors') loadGalleryVendors();
+      // Show tab bar
+      document.getElementById('userTabsContainer').classList.remove('hidden');
+
+      // Toggle views
+      document.getElementById('view-tester').classList.add('hidden');
+      document.getElementById('view-review').classList.add('hidden');
+      document.getElementById('view-admin').classList.add('hidden');
+
+      const target = document.getElementById('view-' + viewName);
+      if (target) target.classList.remove('hidden');
+
+      if (viewName === 'review') loadReviewQueue();
+    }
+
+    function toggleAdminPortal() {
+      if (currentActiveView === 'admin') {
+        showUserView('tester');
+      } else {
+        openAdminPortal();
+      }
+    }
+
+    function openAdminPortal() {
+      currentActiveView = 'admin';
+
+      // Hide user tab bar for full focused admin experience
+      document.getElementById('userTabsContainer').classList.add('hidden');
+
+      // Highlight Admin nav button
+      const adminBtn = document.getElementById('adminNavBtn');
+      if (adminBtn) adminBtn.classList.add('active');
+
+      // Toggle cards
+      document.getElementById('view-tester').classList.add('hidden');
+      document.getElementById('view-review').classList.add('hidden');
+      document.getElementById('view-admin').classList.remove('hidden');
+
+      loadTrainedClasses();
+      loadGalleryVendors();
+      showToast("Accessing Admin Console & System Analytics");
+    }
+
+    function switchAdminSection(secName) {
+      document.querySelectorAll('.admin-subtab-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById('subtabBtn-' + secName);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      if (secName === 'analytics') {
+        document.getElementById('admin-sec-analytics').classList.remove('hidden');
+        document.getElementById('admin-sec-memory').classList.add('hidden');
+      } else {
+        document.getElementById('admin-sec-analytics').classList.add('hidden');
+        document.getElementById('admin-sec-memory').classList.remove('hidden');
+      }
+    }
+
+    // Helper for backward compatibility
+    function showTab(name) {
+      if (name === 'classes' || name === 'vendors') {
+        openAdminPortal();
+        if (name === 'vendors') switchAdminSection('memory');
+      } else {
+        showUserView(name);
+      }
     }
 
     function getFriendlyBadge(statusStr, sourceStr) {
       if (statusStr === 'matched_trained') {
-        return `<span class="status-badge status-trained">✓ Verified Brand Match (Model)</span>`;
-      } else if (statusStr === 'gallery_matched') {
-        return `<span class="status-badge status-gallery">⚡ Memory Bank Match (Gallery)</span>`;
+        return `<span class="status-badge status-trained">✓ Verified Brand Match</span>`;
+      } else if (statusStr === 'matched_gallery' || statusStr === 'gallery_matched') {
+        return `<span class="status-badge status-gallery">⚡ Memory Bank Match</span>`;
       } else {
-        return `<span class="status-badge status-unknown">⚠️ Flagged for Human Review</span>`;
+        return `<span class="status-badge status-unknown">⚠️ Needs Human Review</span>`;
       }
     }
 
@@ -914,26 +1613,37 @@
 
         const container = document.getElementById('queueContainer');
         if (items.length === 0) {
-          container.innerHTML = '<p style="color: var(--text-muted); font-size: 14px;">🎉 All clear! No pending invoice items require manual review.</p>';
+          container.innerHTML = '<div style="grid-column: 1/-1; padding: 40px; text-align: center; color: var(--text-muted); background: rgba(12,18,34,0.5); border-radius: var(--radius-md);">🎉 All clear! No pending invoice items require manual review.</div>';
           return;
         }
 
         container.innerHTML = items.map(item => {
           const predicted = item.predicted_label || '';
           const optionsHtml = CORE_BRAND_OPTIONS.map(b => `<option value="${b}" ${b.toLowerCase() === predicted.toLowerCase() ? 'selected' : ''}>${b}</option>`).join('');
+          const cleanDocRef = item.invoice_source_ref ? item.invoice_source_ref.split(/[\\/]/).pop() : ('#' + item.id);
 
           return `
           <div class="review-card" id="card-${item.id}">
-            <img class="crop-preview" src="${API_BASE}/review-queue/${item.id}/crop" alt="Logo Crop" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'100\\' height=\\'100\\'><rect width=\\'100\\' height=\\'100\\' fill=\\'%23111\\'/></svg>'"/>
+            <!-- Top-Right Dustbin Delete Button -->
+            <button class="delete-review-btn" onclick="deleteReviewItem(${item.id})" title="Delete from Review Queue">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line>
+              </svg>
+            </button>
+
+            <img class="crop-preview" src="${API_BASE}/review-queue/${item.id}/crop" alt="Logo Crop" onerror="this.src=window.DEFAULT_THUMB_SVG"/>
             
             <div class="card-meta">
               <div class="meta-row">
-                <span class="meta-label">Queue Item ID:</span>
-                <span class="meta-val">#${item.id}</span>
+                <span class="meta-label">Source Document:</span>
+                <span class="meta-val" style="font-size: 11.5px; max-width: 175px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${item.invoice_source_ref || ''}">${cleanDocRef}</span>
               </div>
               <div class="meta-row">
-                <span class="meta-label">AI Prediction:</span>
-                <span class="meta-val" style="color: var(--primary);">${item.predicted_label || 'Unknown'}</span>
+                <span class="meta-label">Model Suggestion:</span>
+                <span class="meta-val" style="color: #818cf8;">${item.predicted_label || 'Unknown'}</span>
               </div>
               <div class="meta-row">
                 <span class="meta-label">Confidence:</span>
@@ -941,17 +1651,16 @@
               </div>
             </div>
 
-            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 6px;">
-              <label style="font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Select or Type Verified Vendor:</label>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
               <select id="select-vendor-${item.id}" onchange="document.getElementById('label-input-${item.id}').value = this.value">
-                <option value="">-- Choose Known Brand --</option>
+                <option value="">-- Quick Select Known Brand --</option>
                 ${optionsHtml}
               </select>
-              <input type="text" id="label-input-${item.id}" placeholder="Or type custom vendor name..." value="${predicted}" />
+              <input type="text" id="label-input-${item.id}" placeholder="Or type company name..." value="${predicted}" onkeydown="if(event.key==='Enter') resolveItem(${item.id}, 'new_vendor')" />
               
-              <div class="btn-group">
-                <button class="btn btn-primary" onclick="resolveItem(${item.id}, 'new_vendor')">✨ Add to Memory Bank</button>
-                <button class="btn btn-secondary" onclick="resolveItem(${item.id}, 'classifier_missed_trained_class')">🔄 Flag for Retrain</button>
+              <div class="btn-group" style="margin-top: 4px;">
+                <button class="btn btn-primary" onclick="resolveItem(${item.id}, 'new_vendor')" style="width: 100%; justify-content: center;">⚡ Approve & Add to Gallery</button>
+                <button class="btn btn-secondary" onclick="resolveItem(${item.id}, 'classifier_missed_trained_class')" style="font-size: 11.5px; justify-content: center;">🔄 Log Missed Class</button>
               </div>
             </div>
           </div>
@@ -962,13 +1671,74 @@
       }
     }
 
+    async function deleteReviewItem(id) {
+      const card = document.getElementById(`card-${id}`);
+      if (card) {
+        card.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.9) translateY(-10px)';
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/review-queue/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+          if (card && card.parentNode) card.parentNode.removeChild(card);
+          showToast(`🗑️ Review item #${id} deleted.`);
+          
+          const countEl = document.getElementById('reviewCount');
+          const badgeEl = document.getElementById('navReviewBadge');
+          const currentCount = parseInt(badgeEl ? badgeEl.innerText : '1', 10) || 1;
+          const newCount = Math.max(0, currentCount - 1);
+          if (countEl) countEl.innerText = `${newCount} items`;
+          if (badgeEl) badgeEl.innerText = newCount;
+          if (newCount === 0) {
+            const container = document.getElementById('queueContainer');
+            if (container) container.innerHTML = '<div style="grid-column: 1/-1; padding: 40px; text-align: center; color: var(--text-muted); background: rgba(12,18,34,0.5); border-radius: var(--radius-md);">🎉 All clear! No pending invoice items require manual review.</div>';
+          }
+        } else {
+          showToast("Failed to delete review item.");
+          loadReviewQueue();
+        }
+      } catch (err) {
+        console.error("Delete review item error:", err);
+        showToast("Error deleting item: " + err);
+        loadReviewQueue();
+      }
+    }
+
     async function resolveItem(id, resolutionType) {
       const labelInput = document.getElementById(`label-input-${id}`);
       const label = labelInput ? labelInput.value.trim() : '';
 
       if (!label) {
-        alert("Please select or enter a valid vendor label before resolving.");
+        showToast("⚠️ Please select or type a company name first.");
+        if (labelInput) labelInput.focus();
         return;
+      }
+
+      // Smoothly animate card disappearance immediately
+      const card = document.getElementById(`card-${id}`);
+      if (card) {
+        card.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.9) translateY(-10px)';
+        setTimeout(() => { if (card && card.parentNode) card.parentNode.removeChild(card); }, 300);
+      }
+
+      // Optimistically decrement review badges
+      const countEl = document.getElementById('reviewCount');
+      const badgeEl = document.getElementById('navReviewBadge');
+      const currentCount = parseInt(badgeEl ? badgeEl.innerText : '1', 10) || 1;
+      const newCount = Math.max(0, currentCount - 1);
+      if (countEl) countEl.innerText = `${newCount} items`;
+      if (badgeEl) badgeEl.innerText = newCount;
+      if (newCount === 0) {
+        setTimeout(() => {
+          const container = document.getElementById('queueContainer');
+          if (container && container.children.length === 0) {
+            container.innerHTML = '<div style="grid-column: 1/-1; padding: 40px; text-align: center; color: var(--text-muted); background: rgba(12,18,34,0.5); border-radius: var(--radius-md);">🎉 All clear! No pending invoice items require manual review.</div>';
+          }
+        }, 350);
       }
 
       try {
@@ -979,17 +1749,96 @@
         });
 
         if (res.ok) {
-          document.getElementById(`card-${id}`).remove();
-          showToast(`✓ Item #${id} resolved as '${label}' and registered!`);
-          loadReviewQueue();
+          const resData = await res.json();
+          showToast(`✓ Registered '${label}' into AI gallery & updated Ingestion page!`);
+          // Automatically update the invoice on Ingestion & Invoices page
+          updateBatchItemWithResolvedLabel(resData, label);
         } else {
           const errData = await res.json();
           alert("Resolution failed: " + errData.detail);
+          loadReviewQueue();
         }
       } catch (err) {
         alert("Error resolving review item: " + err);
+        loadReviewQueue();
       }
     }
+
+    function updateBatchItemWithResolvedLabel(resolvedItem, newLabel) {
+      if (!lastBatchData || !lastBatchData.items) return;
+
+      const refClean = resolvedItem.invoice_source_ref ? resolvedItem.invoice_source_ref.split(/[\\/]/).pop() : '';
+
+      // Find matching item in lastBatchData
+      let matchedItem = null;
+      for (const it of lastBatchData.items) {
+        const itClean = (it.filename || '').split(/[\\/]/).pop();
+        if (refClean && (itClean === refClean || itClean.includes(refClean) || refClean.includes(itClean))) {
+          matchedItem = it;
+          break;
+        }
+      }
+
+      // Fallback: match any pending/unknown invoice in current batch
+      if (!matchedItem) {
+        const unknowns = lastBatchData.items.filter(it => it.status === 'unknown' || !it.predicted_label || it.predicted_label.includes('Unknown') || it.predicted_label.includes('Review'));
+        if (unknowns.length > 0) {
+          matchedItem = unknowns[0];
+        }
+      }
+
+      if (matchedItem) {
+        matchedItem.predicted_label = newLabel;
+        matchedItem.status = "matched_gallery";
+        matchedItem.match_source = "gallery";
+        matchedItem.confidence_or_similarity = 1.0;
+
+        // Reorganize groups
+        if (!lastBatchData.groups) lastBatchData.groups = {};
+
+        // Remove from old group
+        for (const [grpName, grpList] of Object.entries(lastBatchData.groups)) {
+          const idx = grpList.indexOf(matchedItem);
+          if (idx !== -1) {
+            grpList.splice(idx, 1);
+            if (grpList.length === 0) {
+              delete lastBatchData.groups[grpName];
+            }
+            break;
+          }
+        }
+
+        // Add to new company group
+        if (!lastBatchData.groups[newLabel]) {
+          lastBatchData.groups[newLabel] = [];
+        }
+        lastBatchData.groups[newLabel].push(matchedItem);
+
+        // Recount company_counts
+        lastBatchData.company_counts = {};
+        for (const [grpName, grpList] of Object.entries(lastBatchData.groups)) {
+          lastBatchData.company_counts[grpName] = grpList.length;
+        }
+        lastBatchData.total_companies = Object.keys(lastBatchData.groups).length;
+
+        // Persist updated batch to sessionStorage
+        try {
+          sessionStorage.setItem('lastBatchData', JSON.stringify(lastBatchData));
+        } catch (e) {}
+
+        // Re-render Ingestion workspace
+        renderBatchWorkspace(lastBatchData);
+
+        // Update single tester result if visible
+        const resLabelEl = document.getElementById('resLabel');
+        if (resLabelEl) resLabelEl.innerText = newLabel.toUpperCase();
+        const resStatusBadge = document.getElementById('resStatusBadge');
+        if (resStatusBadge) resStatusBadge.innerHTML = getFriendlyBadge('matched_gallery', 'gallery');
+        const resScoreText = document.getElementById('resScoreText');
+        if (resScoreText) resScoreText.innerText = '100.0%';
+      }
+    }
+
 
     async function loadTrainedClasses() {
       try {
@@ -1005,13 +1854,14 @@
 
     function renderClassesTable(list) {
       const tbody = document.getElementById('classesTableBody');
+      if (!tbody) return;
       if (list.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="color: var(--text-muted);">🔍 No matching brand classes found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="color: var(--text-muted); padding: 18px;">🔍 No matching brand classes found.</td></tr>';
         return;
       }
       tbody.innerHTML = list.map(c => `
         <tr>
-          <td style="font-weight: 600;">${c.class_name}</td>
+          <td style="font-weight: 600; color: #fff;">${c.class_name}</td>
           <td>${c.metrics.precision !== null ? c.metrics.precision.toFixed(1) + '%' : '100.0%'}</td>
           <td>${c.metrics.recall !== null ? c.metrics.recall.toFixed(1) + '%' : '100.0%'}</td>
           <td><span style="color: var(--accent-green); font-weight: 700;">${c.metrics.f1_score !== null ? c.metrics.f1_score.toFixed(1) + '%' : '100.0%'}</span></td>
@@ -1032,6 +1882,8 @@
         const data = await res.json();
         rawVendorsList = data.vendors || [];
         document.getElementById('vendorsCount').innerText = `${data.unique_vendors} vendors (${data.total_vectors} vectors)`;
+        const adminGalleryCount = document.getElementById('adminGalleryCount');
+        if (adminGalleryCount) adminGalleryCount.innerText = `${data.total_vectors} vectors`;
         renderVendorsTable(rawVendorsList);
       } catch (err) {
         console.error("Failed to load vendors:", err);
@@ -1040,16 +1892,17 @@
 
     function renderVendorsTable(list) {
       const tbody = document.getElementById('vendorsTableBody');
+      if (!tbody) return;
       if (list.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="3" style="color: var(--text-muted);">🔍 No matching vendors found in catalog.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="3" style="color: var(--text-muted); padding: 18px;">🔍 No matching vendors found in memory bank.</td></tr>';
         return;
       }
 
       tbody.innerHTML = list.map(v => `
         <tr>
-          <td style="font-weight: 600; color: var(--accent-purple);">${v.vendor_label}</td>
-          <td>${v.embedding_count} embeddings</td>
-          <td><span class="status-badge status-gallery">Dynamic Memory Bank</span></td>
+          <td style="font-weight: 600; color: #c4b5fd;">${v.vendor_label}</td>
+          <td><span style="font-family: 'JetBrains Mono', monospace; color: #fff;">${v.embedding_count}</span> vector fingerprints</td>
+          <td><span class="status-badge status-gallery">⚡ Active Live Match</span></td>
         </tr>
       `).join('');
     }
@@ -1060,40 +1913,329 @@
       renderVendorsTable(filtered);
     }
 
-    async function testClassifyFile(file) {
-      if (!file) return;
+    function handleDrop(e) {
+      e.preventDefault();
+      const files = e.dataTransfer.files;
+      if (files && files.length > 0) {
+        handleBatchUpload(files);
+      }
+    }
+
+    async function handleBatchUpload(files) {
+      if (!files || files.length === 0) return;
+      const fileArray = Array.from(files);
+      currentBatchFiles = fileArray;
+
+      const progressCard = document.getElementById('batchProgressCard');
+      const progressCount = document.getElementById('batchProgressCount');
+      const batchWorkspace = document.getElementById('batchResultsWorkspace');
+      const testerResult = document.getElementById('testerResult');
+
+      progressCard.classList.remove('hidden');
+      progressCount.innerText = `Classifying ${fileArray.length} document(s)...`;
+      batchWorkspace.classList.add('hidden');
+      testerResult.classList.add('hidden');
 
       const formData = new FormData();
-      formData.append('file', file);
+      for (const f of fileArray) {
+        formData.append('files', f);
+      }
 
       try {
-        const res = await fetch(API_BASE + '/invoices/classify', {
+        const res = await fetch(API_BASE + '/invoices/classify-batch', {
           method: 'POST',
           body: formData
         });
 
         const data = await res.json();
+        progressCard.classList.add('hidden');
+
         if (res.ok) {
-          lastClassificationData = data;
-          renderPhase2Result(data, file);
+          lastBatchData = data;
+          try { sessionStorage.setItem('lastBatchData', JSON.stringify(data)); } catch (e) {}
+          showToast(`✓ Classified ${data.processed_count} invoice(s) across ${data.total_companies} company folder(s)!`);
+          renderBatchWorkspace(data);
+
+          if (fileArray.length === 1 && data.items.length === 1) {
+            renderPhase2Result(data.items[0], fileArray[0]);
+          }
         } else {
-          alert("Classification Error: " + data.detail);
+          alert("Batch Processing Failed: " + (data.detail || "Server error"));
         }
       } catch (err) {
-        alert("Classification Request Failed: " + err);
+        progressCard.classList.add('hidden');
+        alert("Batch Upload Request Failed: " + err);
       }
     }
 
+    function renderBatchWorkspace(data) {
+      const workspace = document.getElementById('batchResultsWorkspace');
+      workspace.classList.remove('hidden');
+
+      document.getElementById('batchTotalBadge').innerText = `${data.total_files} Invoices`;
+      document.getElementById('kpiBatchTotalFiles').innerText = data.total_files;
+      document.getElementById('kpiBatchTotalCompanies').innerText = data.total_companies;
+
+      let verifiedCount = 0;
+      let reviewCount = 0;
+      for (const it of data.items) {
+        if (it.status === 'matched_trained' || it.status === 'matched_gallery') {
+          verifiedCount++;
+        } else {
+          reviewCount++;
+        }
+      }
+      document.getElementById('kpiBatchVerifiedCount').innerText = verifiedCount;
+      document.getElementById('kpiBatchReviewCount').innerText = reviewCount;
+
+      const container = document.getElementById('companyGroupsContainer');
+      const brandIcons = {
+        'Adidas': '👟', 'Adobe': '🎨', 'Airbnb': '🏠', 'Amazon': '🛒',
+        'Apple': '🍎', 'Cisco': '🌐', 'CocaCola': '🥤', 'DHL': '📦',
+        'FedEx': '🚚', 'Ford': '🚙', 'Google': '🔍', 'IBM': '💻',
+        'Intel': '⚡', 'Microsoft': '🪟', 'Netflix': '🎬', 'Nike': '👟',
+        'Oracle': '🗄️', 'PayPal': '💳', 'Pepsi': '🥤', 'Salesforce': '☁️',
+        'Samsung': '📱', 'Slack': '💬', 'Sony': '🎮', 'Starbucks': '☕',
+        'Stripe': '💳', 'Target': '🎯', 'Toyota': '🚘', 'UPS': '📦',
+        'Uber': '🚗', 'Walmart': '🏬'
+      };
+
+      const groupKeys = Object.keys(data.groups).sort((a, b) => {
+        if (a.includes('Review')) return 1;
+        if (b.includes('Review')) return -1;
+        return data.groups[b].length - data.groups[a].length;
+      });
+
+      container.innerHTML = groupKeys.map((company, idx) => {
+        const invoices = data.groups[company];
+        const icon = brandIcons[company] || (company.includes('Review') ? '❓' : '🏢');
+        const isReview = company.includes('Review') || company.includes('Unknown');
+        const badgeClass = isReview ? 'company-badge-unknown' : 'company-badge-trained';
+        const avgConf = (invoices.reduce((acc, cur) => acc + cur.confidence_or_similarity, 0) / (invoices.length || 1) * 100).toFixed(1);
+
+        return `
+          <div class="company-group-card">
+            <div class="company-group-header" onclick="toggleCompanyAccordion(${idx})">
+              <div class="company-group-title">
+                <span style="font-size: 20px;">${icon}</span>
+                <span>${company}</span>
+                <span class="${badgeClass}">${invoices.length} document${invoices.length > 1 ? 's' : ''}</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 14px;">
+                <span style="font-size: 12px; color: ${isReview ? 'var(--accent-amber)' : 'var(--accent-green)'}; font-weight: 700;">
+                  ${avgConf}% avg confidence
+                </span>
+                <span id="accordion-arrow-${idx}" style="font-size: 13px; color: var(--text-muted); transition: transform 0.2s;">▼</span>
+              </div>
+            </div>
+
+            <div class="company-invoices-grid" id="accordion-grid-${idx}">
+              ${invoices.map((inv, invIdx) => `
+                <div class="batch-invoice-card">
+                  <img class="batch-card-thumb" src="${inv.crop_image_base64 || window.DEFAULT_THUMB_SVG}" alt="Logo Crop"/>
+                  <div class="batch-card-filename" title="${inv.filename}">📄 ${inv.filename}</div>
+                  <div class="batch-card-meta">
+                    <span>Conf: <strong style="color: ${inv.confidence_or_similarity > 0.6 ? 'var(--accent-green)' : 'var(--accent-amber)'};">${(inv.confidence_or_similarity * 100).toFixed(1)}%</strong></span>
+                    <span>${getFriendlyBadge(inv.status, inv.match_source)}</span>
+                  </div>
+                  <div style="margin-top: 4px;">
+                    <button class="btn btn-secondary" style="width: 100%; justify-content: center; padding: 6px;" data-company="${encodeURIComponent(company)}" data-idx="${invIdx}" onclick="inspectBatchItemByBtn(this)">
+                      🔍 Inspect Details & Crop
+                    </button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function inspectBatchItemByBtn(btn) {
+      const company = decodeURIComponent(btn.getAttribute('data-company'));
+      const idx = parseInt(btn.getAttribute('data-idx'), 10);
+      inspectBatchItem(company, idx);
+    }
+
+    function toggleCompanyAccordion(idx) {
+      const grid = document.getElementById(`accordion-grid-${idx}`);
+      const arrow = document.getElementById(`accordion-arrow-${idx}`);
+      if (!grid) return;
+      if (grid.style.display === 'none') {
+        grid.style.display = 'grid';
+        if (arrow) arrow.style.transform = 'rotate(0deg)';
+      } else {
+        grid.style.display = 'none';
+        if (arrow) arrow.style.transform = 'rotate(-90deg)';
+      }
+    }
+
+    function inspectBatchItem(company, invIdx) {
+      if (!lastBatchData || !lastBatchData.groups[company]) return;
+      const item = lastBatchData.groups[company][invIdx];
+      renderPhase2Result(item, null);
+      document.getElementById('testerResult').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    async function exportOrganizedZip() {
+      if (!lastBatchData && (!currentBatchFiles || currentBatchFiles.length === 0)) {
+        showToast("⚠️ No active batch files to export. Please upload invoices first.");
+        return;
+      }
+
+      showToast("📦 Preparing organized ZIP archive with corporate folders...");
+      try {
+        let blob = null;
+        let filename = `organized_invoices_${Date.now()}.zip`;
+
+        // 1. Try server batch endpoint if batch_id is active
+        if (lastBatchData && lastBatchData.batch_id) {
+          try {
+            const res = await fetch(`${API_BASE}/invoices/batch/${lastBatchData.batch_id}/zip`);
+            if (res.ok) {
+              blob = await res.blob();
+              filename = `invoices_organized_by_vendor_${lastBatchData.batch_id}.zip`;
+            }
+          } catch (e) {}
+        }
+
+        // 2. Fallback to latest batch on server
+        if (!blob) {
+          try {
+            const res = await fetch(`${API_BASE}/invoices/batch/latest/zip`);
+            if (res.ok) {
+              blob = await res.blob();
+              filename = `invoices_organized_by_vendor_latest.zip`;
+            }
+          } catch (e) {}
+        }
+
+        // 3. Fallback to /invoices/export-batch-zip with currentBatchFiles
+        if (!blob && currentBatchFiles && currentBatchFiles.length > 0) {
+          const formData = new FormData();
+          for (const f of currentBatchFiles) formData.append('files', f);
+          const res = await fetch(`${API_BASE}/invoices/export-batch-zip`, {
+            method: 'POST',
+            body: formData
+          });
+          if (res.ok) {
+            blob = await res.blob();
+          }
+        }
+
+        if (!blob) {
+          throw new Error("Unable to compile ZIP archive. Please upload invoices again.");
+        }
+
+        // Trigger native browser download via invisible <a>
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          if (a.parentNode) a.parentNode.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        }, 60000);
+        showToast("✓ Downloaded organized ZIP archive!");
+      } catch (err) {
+        console.error("ZIP download error:", err);
+        alert("ZIP Export Error: " + err.message);
+      }
+    }
+
+    async function exportBatchCsv() {
+      if (!lastBatchData || !lastBatchData.items || lastBatchData.items.length === 0) {
+        showToast("⚠️ No batch results to export. Please upload invoices first.");
+        return;
+      }
+
+      showToast("📊 Preparing CSV manifest summary...");
+      try {
+        let blob = null;
+        let filename = `invoices_manifest_${Date.now()}.csv`;
+
+        // 1. Try server batch CSV endpoint
+        if (lastBatchData.batch_id) {
+          try {
+            const res = await fetch(`${API_BASE}/invoices/batch/${lastBatchData.batch_id}/csv`);
+            if (res.ok) {
+              blob = await res.blob();
+              filename = `invoices_manifest_${lastBatchData.batch_id}.csv`;
+            }
+          } catch (e) {}
+        }
+
+        // 2. Try latest batch CSV
+        if (!blob) {
+          try {
+            const res = await fetch(`${API_BASE}/invoices/batch/latest/csv`);
+            if (res.ok) {
+              blob = await res.blob();
+              filename = `invoices_manifest_latest.csv`;
+            }
+          } catch (e) {}
+        }
+
+        // 3. Fallback client-side generation with UTF-8 BOM
+        if (!blob) {
+          const headers = ["Filename", "Detected Company", "Confidence (%)", "Status", "Match Source"];
+          const rows = lastBatchData.items.map(it => [
+            `"${(it.filename || '').replace(/"/g, '""')}"`,
+            `"${(it.predicted_label || 'Needs Review / Unknown').replace(/"/g, '""')}"`,
+            (it.confidence_or_similarity * 100).toFixed(2),
+            `"${it.status}"`,
+            `"${it.match_source}"`
+          ]);
+          const csvContent = "\uFEFF" + [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
+          blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        }
+
+        // Trigger native download
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.style.display = 'none';
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        setTimeout(() => {
+          if (link.parentNode) link.parentNode.removeChild(link);
+          window.URL.revokeObjectURL(url);
+        }, 60000);
+        showToast("✓ Exported batch classification CSV!");
+      } catch (err) {
+        console.error("CSV export error:", err);
+        alert("CSV Export Error: " + err.message);
+      }
+    }
+
+
     function renderPhase2Result(data, file) {
       document.getElementById('testerResult').classList.remove('hidden');
-      document.getElementById('resLabel').innerText = data.predicted_label || 'Unknown Vendor';
+      document.getElementById('resLabel').innerText = (data.predicted_label || 'Unknown Vendor').toUpperCase();
       document.getElementById('resStatusBadge').innerHTML = getFriendlyBadge(data.status, data.match_source);
 
       const scorePct = (data.confidence_or_similarity * 100).toFixed(2);
       document.getElementById('resScoreText').innerText = `${scorePct}%`;
       document.getElementById('resScoreBar').style.width = `${Math.min(scorePct, 100)}%`;
 
-      if (file) {
+      const cropTagEl = document.getElementById('resCropTag');
+      if (cropTagEl) {
+        if (data.status === 'matched_trained' || data.status === 'matched_gallery') {
+          cropTagEl.innerText = 'Verified Logo Mark';
+          cropTagEl.style.background = 'rgba(16, 185, 129, 0.9)';
+        } else {
+          cropTagEl.innerText = 'Header Candidate';
+          cropTagEl.style.background = 'rgba(99, 102, 241, 0.9)';
+        }
+      }
+
+      if (data.crop_image_base64) {
+        document.getElementById('resPreviewImg').src = data.crop_image_base64;
+      } else if (file) {
         const reader = new FileReader();
         reader.onload = (e) => {
           document.getElementById('resPreviewImg').src = e.target.result;
@@ -1108,16 +2250,17 @@
 
       candidatesBody.innerHTML = candidates.map(c => `
         <tr>
-          <td style="font-weight: 600; color: var(--primary);">${c.label || 'Candidate Crop'}</td>
-          <td style="font-family: monospace; font-size: 11px;">${c.bbox ? JSON.stringify(c.bbox) : 'Full Header'}</td>
-          <td><span style="color: var(--accent-green); font-weight: 600;">${c.score ? (c.score * 100).toFixed(1) + '%' : scorePct + '%'}</span></td>
+          <td style="font-weight: 600; color: #818cf8;">${c.label || 'Candidate Crop'}</td>
+          <td style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted);">${c.bbox ? JSON.stringify(c.bbox) : 'Full Header'}</td>
+          <td><span style="color: var(--accent-green); font-weight: 700; font-family: 'JetBrains Mono', monospace;">${c.score ? (c.score * 100).toFixed(1) + '%' : scorePct + '%'}</span></td>
         </tr>
       `).join('');
     }
 
     function exportJsonResult() {
-      if (!lastClassificationData) return;
-      const str = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(lastClassificationData, null, 2));
+      if (!lastClassificationData && !lastBatchData) return;
+      const exportData = lastBatchData || lastClassificationData;
+      const str = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
       const anchor = document.createElement('a');
       anchor.setAttribute("href", str);
       anchor.setAttribute("download", `classification_report_${Date.now()}.json`);
@@ -1126,46 +2269,80 @@
       anchor.remove();
     }
 
-    async function testSample(brand) {
-      showToast(`Testing pre-loaded ${brand.toUpperCase()} receipt sample...`);
-      const fakeData = {
-        predicted_label: brand.toUpperCase(),
-        confidence_or_similarity: brand === 'adidas' ? 0.683 : 0.942,
-        status: 'matched_trained',
-        match_source: 'classifier',
-        candidate_count: 3,
-        candidates: [
-          { label: 'full_header', bbox: { xmin: 0, ymin: 0, xmax: 274, ymax: 145 }, score: 0.683 },
-          { label: 'top_right', bbox: { xmin: 137, ymin: 0, xmax: 274, ymax: 145 }, score: 0.439 }
-        ]
+    // Supported Companies Modal Logic
+    function renderCornerBrandList(filter = '') {
+      const listEl = document.getElementById('cornerBrandList');
+      if (!listEl) return;
+      const q = filter.trim().toLowerCase();
+      const filtered = CORE_BRAND_OPTIONS.filter(b => b.toLowerCase().includes(q));
+
+      const brandIcons = {
+        'Adidas': '👟', 'Adobe': '🎨', 'Airbnb': '🏠', 'Amazon': '🛒',
+        'Apple': '🍎', 'Cisco': '🌐', 'CocaCola': '🥤', 'DHL': '📦',
+        'FedEx': '🚚', 'Ford': '🚙', 'Google': '🔍', 'IBM': '💻',
+        'Intel': '⚡', 'Microsoft': '🪟', 'Netflix': '🎬', 'Nike': '👟',
+        'Oracle': '🗄️', 'PayPal': '💳', 'Pepsi': '🥤', 'Salesforce': '☁️',
+        'Samsung': '📱', 'Slack': '💬', 'Sony': '🎮', 'Starbucks': '☕',
+        'Stripe': '💳', 'Target': '🎯', 'Toyota': '🚘', 'UPS': '📦',
+        'Uber': '🚗', 'Walmart': '🏬'
       };
-      lastClassificationData = fakeData;
-      renderPhase2Result(fakeData, null);
+
+      if (filtered.length === 0) {
+        listEl.innerHTML = '<span style="color: var(--text-muted); font-size: 13px; grid-column: 1/-1; padding: 10px;">🔍 No matching company found.</span>';
+        return;
+      }
+
+      listEl.innerHTML = filtered.map(b => {
+        const icon = brandIcons[b] || '🏢';
+        return `<span class="brand-pill">${icon} ${b}</span>`;
+      }).join('');
+
+      const countEl = document.getElementById('cornerBrandCount');
+      if (countEl) countEl.innerText = `${filtered.length} Brands`;
     }
 
-    // Phase 5: Keyboard Event Listeners
+    function filterCornerBrands() {
+      const q = document.getElementById('cornerBrandSearch').value;
+      renderCornerBrandList(q);
+    }
+
+    function toggleSupportedCompaniesWidget(forceOpen = false) {
+      const panel = document.getElementById('supportedCompaniesPanel');
+      if (!panel) return;
+
+      const isHidden = panel.classList.contains('hidden');
+      if (isHidden || forceOpen) {
+        panel.classList.remove('hidden');
+        renderCornerBrandList();
+        const searchInput = document.getElementById('cornerBrandSearch');
+        if (searchInput) searchInput.focus();
+      } else {
+        panel.classList.add('hidden');
+      }
+    }
+
+    // Keydown handlers
     document.addEventListener('keydown', (e) => {
-      if (e.ctrlKey && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        document.getElementById('shortcutModal').classList.toggle('hidden');
-      } else if (e.key === 'Escape') {
-        document.getElementById('shortcutModal').classList.add('hidden');
-      } else if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'SELECT') {
-        if (e.key === '1') showTab('tester');
-        if (e.key === '2') showTab('review');
-        if (e.key === '3') showTab('vendors');
-        if (e.key === '4') showTab('classes');
-        if (e.key.toLowerCase() === 'u') document.getElementById('fileInput').click();
+      if (e.key === 'Escape') {
+        document.getElementById('supportedCompaniesPanel').classList.add('hidden');
       }
     });
 
-    // Init
-    if (!localStorage.getItem('ilc_user')) {
-      document.getElementById('loginModal').classList.remove('hidden');
-    } else {
-      document.getElementById('loginModal').classList.add('hidden');
-      applyUserSession();
+    // Initialize
+    function initDashboard() {
+      renderCornerBrandList();
+      loadReviewQueue();
+      try {
+        const saved = sessionStorage.getItem('lastBatchData');
+        if (saved) {
+          lastBatchData = JSON.parse(saved);
+          renderBatchWorkspace(lastBatchData);
+        }
+      } catch (e) {}
     }
+
+    window.addEventListener('DOMContentLoaded', initDashboard);
+    initDashboard();
   </script>
 </body>
 </html>

@@ -1,0 +1,4 @@
+﻿Filename,Identified Company,Confidence (%),Status,Match Source,Processed Timestamp
+invoice_01.png,Adidas,46.95,matched_trained,classifier,2026-10-26 13:37:47
+invoice_02.png,Adidas,46.95,matched_trained,classifier,2026-10-26 13:37:48
+invoice_03.txt,Needs Review / Unknown,0.00,unsupported_format,none,2026-10-26 13:37:48

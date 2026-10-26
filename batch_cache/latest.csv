@@ -1,0 +1,6 @@
+﻿Filename,Identified Company,Confidence (%),Status,Match Source,Processed Timestamp
+Screenshot 2026-10-23 115051.png,Nike,99.72,matched_trained,classifier,2026-10-26 14:39:50
+Screenshot 2026-10-23 115528.png,Amazon,100.00,matched_trained,classifier,2026-10-26 14:39:52
+Screenshot 2026-10-23 123825.png,Google,100.00,matched_trained,classifier,2026-10-26 14:39:54
+Screenshot 2026-10-23 132053.png,Adidas,97.66,matched_trained,classifier,2026-10-26 14:39:56
+Screenshot 2026-10-23 135756.png,PayPal,97.34,matched_trained,classifier,2026-10-26 14:39:57

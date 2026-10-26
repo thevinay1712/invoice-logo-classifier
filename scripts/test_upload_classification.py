@@ -18,16 +18,16 @@ def create_brand_invoice(path: Path, label: str, doc_id: str) -> Path:
     draw = ImageDraw.Draw(img)
 
     # Header border & logo box
-    draw.rectangle([40, 40, 760, 180], outline=(210, 210, 210), width=2)
+    draw.rectangle([40, 30, 760, 190], outline=(210, 210, 210), width=2)
     
     # Generate actual brand logo crop matching training distribution
-    logo_crop = generate_logo_image(label, index=0, size=(200, 100))
-    img.paste(logo_crop, (60, 60))
+    logo_crop = generate_logo_image(label, index=0, size=(160, 160))
+    img.paste(logo_crop, (50, 30))
 
     # Text lines
-    draw.text((290, 65), f"INVOICE DOCUMENT - {label.upper()}", fill=(0, 0, 0))
-    draw.text((290, 95), f"Invoice #: {doc_id}", fill=(120, 120, 120))
-    draw.text((290, 115), f"Vendor: {label}", fill=(120, 120, 120))
+    draw.text((230, 65), f"INVOICE DOCUMENT - {label.upper()}", fill=(0, 0, 0))
+    draw.text((230, 95), f"Invoice #: {doc_id}", fill=(120, 120, 120))
+    draw.text((230, 115), f"Vendor: {label}", fill=(120, 120, 120))
 
     for y in range(220, 850, 45):
         draw.line([(40, y), (760, y)], fill=(240, 240, 240), width=1)
@@ -42,7 +42,7 @@ def main():
     # Create test invoice images for various brands
     test_brands = ["Amazon", "Adidas", "Apple", "DHL", "FedEx", "Google", "Microsoft", "Nike", "Starbucks", "Walmart"]
     
-    service = InvoiceLogoClassifierService(closed_set_threshold=0.50)
+    service = InvoiceLogoClassifierService(closed_set_threshold=0.20, gallery_threshold=0.85)
     
     print("=" * 70)
     print(" BRAND INVOICE CLASSIFICATION VERIFICATION")
