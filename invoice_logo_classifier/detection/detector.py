@@ -90,17 +90,39 @@ class HeuristicHeaderDetector(LogoDetector):
 
         if self.split_corners:
             mid_w = int(w * 0.5)
+            # Standard top-left header logo box (for wider banner brand marks)
+            boxes.append(
+                BBox(
+                    xmin=int(w * 0.04),
+                    ymin=int(h * 0.02),
+                    xmax=int(w * 0.40),
+                    ymax=int(header_h * 0.95),
+                    confidence=0.98,
+                    label="header_logo_left",
+                )
+            )
+            # Focused compact top-left logo box
+            boxes.append(
+                BBox(
+                    xmin=int(w * 0.04),
+                    ymin=int(h * 0.02),
+                    xmax=int(w * 0.32),
+                    ymax=int(header_h * 0.90),
+                    confidence=0.95,
+                    label="header_logo_left_compact",
+                )
+            )
             # Top-left corner box (most common logo location)
             boxes.append(
-                BBox(xmin=0, ymin=0, xmax=mid_w, ymax=header_h, confidence=0.9, label="top_left")
+                BBox(xmin=0, ymin=0, xmax=mid_w, ymax=header_h, confidence=0.85, label="top_left")
             )
-            # Top-right corner box
+            # Top-right corner box (secondary text / metadata area)
             boxes.append(
-                BBox(xmin=mid_w, ymin=0, xmax=w, ymax=header_h, confidence=0.85, label="top_right")
+                BBox(xmin=mid_w, ymin=0, xmax=w, ymax=header_h, confidence=0.65, label="top_right")
             )
             # Full header strip
             boxes.append(
-                BBox(xmin=0, ymin=0, xmax=w, ymax=header_h, confidence=0.75, label="full_header")
+                BBox(xmin=0, ymin=0, xmax=w, ymax=header_h, confidence=0.55, label="full_header")
             )
         else:
             boxes.append(
@@ -110,8 +132,72 @@ class HeuristicHeaderDetector(LogoDetector):
         return boxes
 
 
+def extract_visual_header_boxes(page_image: Image.Image, header_ratio: float = 0.25) -> list[BBox]:
+    """Dynamically locate visual logo mark / wordmark clusters in document header using computer vision.
+
+    Uses adaptive thresholding, horizontal line suppression, and morphological bridging to find
+    true visual bounding boxes of vendor logos without cutting off text or symbols.
+    """
+    try:
+        import cv2
+        import numpy as np
+
+        w, h = page_image.size
+        header_h = max(20, int(h * header_ratio))
+        gray = np.array(page_image.convert("L"))[:header_h, :]
+        margin_y = max(4, int(header_h * 0.03))
+        margin_x = max(4, int(w * 0.02))
+
+        sub = gray[margin_y:header_h - margin_y, margin_x:int(w * 0.70)]
+        sub_h, sub_w = sub.shape
+        if sub_h < 15 or sub_w < 15:
+            return []
+
+        # Detect dark or light banner
+        is_dark = bool(np.median(sub) < 128)
+        if is_dark:
+            _, thresh = cv2.threshold(sub, 120, 255, cv2.THRESH_BINARY)
+        else:
+            _, thresh = cv2.threshold(sub, 235, 255, cv2.THRESH_BINARY_INV)
+
+        # Remove thin full-width horizontal divider lines
+        h_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (max(20, int(w * 0.35)), 1))
+        lines = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, h_kernel)
+        thresh = cv2.subtract(thresh, lines)
+
+        # Morphological close to bridge adjacent logo letters, emblems & icons
+        k_w = max(16, int(w * 0.035))
+        k_h = max(8, int(header_h * 0.08))
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (k_w, k_h))
+        closed = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
+
+        contours, _ = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        visual_boxes = []
+        for c in contours:
+            x, y, bw, bh = cv2.boundingRect(c)
+            # Logos are in the left 70% of header, reasonable dimensions
+            if bw > 35 and bh > 15 and bw < w * 0.75 and bh < header_h * 0.90:
+                if bw * bh > 500:
+                    bx = BBox(
+                        xmin=x + margin_x,
+                        ymin=y + margin_y,
+                        xmax=x + margin_x + bw,
+                        ymax=y + margin_y + bh,
+                        confidence=1.15,
+                        label="visual_contour_logo",
+                    )
+                    visual_boxes.append(bx)
+
+        # Sort visual boxes left-to-right, then top-to-bottom
+        visual_boxes.sort(key=lambda b: (b.ymin, b.xmin))
+        return visual_boxes
+    except Exception as cv_err:
+        logger.debug(f"Visual contour logo detection skipped ({cv_err}).")
+        return []
+
+
 class TextDensityRefiner(LogoDetector):
-    """Refines candidate header regions using pytesseract OCR bounding box data to find low-text graphic areas."""
+    """Refines candidate header regions using visual contours and optional OCR text density."""
 
     def __init__(
         self,
@@ -129,10 +215,9 @@ class TextDensityRefiner(LogoDetector):
         )
 
     def detect(self, page_image: Image.Image) -> list[BBox]:
-        """Detect and refine candidate logo bounding boxes based on text box positions."""
+        """Detect and refine candidate logo bounding boxes based on visual contours and text boxes."""
         candidate_boxes = self.base_detector.detect(page_image)
-        if not candidate_boxes:
-            return candidate_boxes
+        visual_boxes = extract_visual_header_boxes(page_image)
 
         # Try to run pytesseract OCR to extract text bounding boxes inside top header
         try:
@@ -155,37 +240,33 @@ class TextDensityRefiner(LogoDetector):
                     bh = ocr_data["height"][i]
                     text_boxes.append((bx, by, bx + bw, by + bh))
 
-            if not text_boxes:
-                return candidate_boxes
-
-            refined_boxes = []
-            # For top-left sub-region, find non-text / low-text sub-area
-            for box in candidate_boxes:
-                t_in_box = [
-                    tb
-                    for tb in text_boxes
-                    if tb[0] >= box.xmin and tb[1] >= box.ymin and tb[2] <= box.xmax and tb[3] <= box.ymax
-                ]
-                if not t_in_box:
-                    # Low text density region found -> bump confidence
-                    refined_boxes.append(
-                        BBox(
-                            xmin=box.xmin,
-                            ymin=box.ymin,
-                            xmax=box.xmax,
-                            ymax=box.ymax,
-                            confidence=min(1.0, box.confidence + 0.1),
-                            label=f"{box.label}_graphic",
+            if text_boxes:
+                refined_boxes = []
+                for box in candidate_boxes:
+                    t_in_box = [
+                        tb
+                        for tb in text_boxes
+                        if tb[0] >= box.xmin and tb[1] >= box.ymin and tb[2] <= box.xmax and tb[3] <= box.ymax
+                    ]
+                    if not t_in_box:
+                        refined_boxes.append(
+                            BBox(
+                                xmin=box.xmin,
+                                ymin=box.ymin,
+                                xmax=box.xmax,
+                                ymax=box.ymax,
+                                confidence=min(1.0, box.confidence + 0.1),
+                                label=f"{box.label}_graphic",
+                            )
                         )
-                    )
-                else:
-                    refined_boxes.append(box)
-
-            return refined_boxes
+                    else:
+                        refined_boxes.append(box)
+                candidate_boxes = refined_boxes
 
         except Exception as ocr_err:  # noqa: BLE001 – Tesseract optional; any failure falls back to base candidates
             logger.debug(f"Pytesseract text density refinement skipped ({ocr_err}). Returning base candidates.")
-            return candidate_boxes
+
+        return visual_boxes + candidate_boxes
 
 
 def crop(

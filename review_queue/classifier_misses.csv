@@ -1,0 +1,5 @@
+item_id,invoice_source_ref,predicted_label,resolved_label,confidence,crop_image_path,timestamp
+2,sample_invoice_02.png,FedEx,FedEx,0.38,review_queue\crops\crop_002_ApexLogistics.png,2026-10-26T13:13:55.503489+00:00
+3,sample_invoice_03.png,UPS,UPS,0.51,review_queue\crops\crop_003_GlobalServicesInc.png,2026-10-26T13:13:56.521127+00:00
+4,sample_invoice_04.png,Cisco,Cisco,0.29,review_queue\crops\crop_004_VertexSystems.png,2026-10-26T13:13:57.248490+00:00
+1,sample_invoice_01.png,DHL,DHL,0.42,review_queue\crops\crop_001_TechLogisticsCorp.png,2026-10-26T13:13:58.159638+00:00

@@ -116,13 +116,13 @@ class Settings(BaseSettings):
 
     # Classifier Model & Hyperparameters
     classifier_model_name: str = Field(
-        default="efficientnet_b0", description="Backbone model for logo classification"
+        default="resnet50", description="Backbone model for logo classification"
     )
     embedding_dim: int = Field(
         default=512, description="Embedding vector dimension for gallery matching"
     )
     num_classes: int = Field(
-        default=50, description="Initial closed-set number of vendor classes"
+        default=30, description="Initial closed-set number of vendor classes"
     )
 
     # Training Parameters
@@ -141,7 +141,7 @@ class Settings(BaseSettings):
         description="Confidence threshold above which closed-set classification is accepted",
     )
     gallery_similarity_threshold: float = Field(
-        default=0.75,
+        default=0.86,
         description="Cosine similarity threshold for gallery embedding match",
     )
     top_k_gallery_matches: int = Field(

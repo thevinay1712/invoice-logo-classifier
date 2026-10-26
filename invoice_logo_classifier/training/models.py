@@ -95,6 +95,7 @@ def set_backbone_trainable(
         trainable: If False, freeze backbone and train only head (warmup mode).
                    If True, unfreeze head and last N backbone blocks for fine-tuning.
         unfreeze_last_n_blocks: Number of trailing backbone blocks/layers to unfreeze when trainable=True.
+                                For ResNet50: 1 = layer4+fc, 2 = layer3+layer4+fc, etc.
     """
     backbone_type = getattr(model, "backbone_name", "resnet50")
 
@@ -109,7 +110,11 @@ def set_backbone_trainable(
         # Fine-tuning phase: unfreeze final head and last N backbone blocks
         if "resnet" in backbone_type:
             # ResNet50 layer structure: layer1, layer2, layer3, layer4, fc
-            target_layers = [f"layer{4 - i}" for i in range(unfreeze_last_n_blocks)]
+            # unfreeze_last_n_blocks=1 -> [layer4, fc]
+            # unfreeze_last_n_blocks=2 -> [layer3, layer4, fc]
+            num_backbone_layers = 4
+            start_layer = max(1, num_backbone_layers - unfreeze_last_n_blocks + 1)
+            target_layers = [f"layer{i}" for i in range(start_layer, num_backbone_layers + 1)]
             target_layers.append("fc")
             for name, param in model.named_parameters():
                 if any(layer_name in name for layer_name in target_layers):

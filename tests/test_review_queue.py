@@ -132,3 +132,23 @@ def test_resolve_classifier_missed_trained_class_logs_csv_and_keeps_gallery_unch
     content = csv_file.read_text(encoding="utf-8")
     assert "class_A" in content
     assert "invoice_missed_class.pdf" in content
+
+
+def test_delete_item_removes_from_database_and_disk(review_mgr, synthetic_crop_image):
+    """Verify delete_item deletes SQLite row and crop image file from disk."""
+    item = review_mgr.enqueue(
+        crop_image=synthetic_crop_image,
+        confidence_or_similarity=0.35,
+        invoice_source_ref="delete_me_invoice.pdf",
+    )
+    assert item.crop_image_path.exists()
+    assert len(review_mgr.list_pending()) == 1
+
+    deleted = review_mgr.delete_item(item.id)
+    assert deleted is True
+    assert not item.crop_image_path.exists()
+    assert len(review_mgr.list_pending()) == 0
+
+    # Second delete returns False (not found)
+    assert review_mgr.delete_item(item.id) is False
+

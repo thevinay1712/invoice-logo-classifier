@@ -278,6 +278,39 @@ class ReviewQueueManager:
             )
         return items
 
+    def delete_item(self, review_item_id: int) -> bool:
+        """Delete an item from the review queue database.
+
+        Args:
+            review_item_id: ID of the review item to remove.
+
+        Returns:
+            True if an item was deleted, False if not found.
+        """
+        conn = sqlite3.connect(str(self.db_path))
+        cursor = conn.cursor()
+        cursor.execute("SELECT crop_image_path FROM review_queue WHERE id = ?", (review_item_id,))
+        row = cursor.fetchone()
+        if not row:
+            conn.close()
+            return False
+
+        crop_path_str = row[0]
+        cursor.execute("DELETE FROM review_queue WHERE id = ?", (review_item_id,))
+        conn.commit()
+        conn.close()
+
+        if crop_path_str:
+            crop_path = Path(crop_path_str)
+            if crop_path.exists():
+                try:
+                    crop_path.unlink()
+                except Exception as err:
+                    logger.warning(f"Failed to remove crop image '{crop_path}': {err}")
+
+        logger.info(f"Deleted review item #{review_item_id}.")
+        return True
+
 
 # Singleton manager instance
 _default_review_manager: ReviewQueueManager | None = None

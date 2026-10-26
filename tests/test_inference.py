@@ -101,3 +101,17 @@ def test_module_level_classify_invoice_shortcut(synthetic_invoice_image):
 
     assert isinstance(result, ClassificationResult)
     assert result.source_path == synthetic_invoice_image
+
+
+def test_classify_clutter_candidate_rejection(tmp_path):
+    """Verify that detected non-logo clutter is rejected from being reported as a matched brand."""
+    service = InvoiceLogoClassifierService(closed_set_threshold=0.01)
+    # Inject _Non_Logo_Clutter as the primary class
+    service.class_list = ["_Non_Logo_Clutter"] * len(service.class_list)
+
+    clutter_img = Image.new("RGB", (100, 100), color=(250, 250, 250))
+    label, score, status, source = service.classify_crop(clutter_img)
+
+    assert status == "unknown"
+    assert source == "none"
+

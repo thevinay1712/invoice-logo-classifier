@@ -33,13 +33,13 @@
     "Uber",
     "Walmart"
   ],
-  "training_date": "2026-09-30T07:24:46.992594+00:00",
-  "best_val_acc": 100.0,
-  "final_val_acc": 100.0,
+  "training_date": "2026-10-23T07:27:32.659139+00:00",
+  "best_val_acc": 99.67,
+  "final_val_acc": 99.67,
   "image_size": [
     224,
     224
   ],
   "seed": 42,
-  "epochs_trained": 8
+  "epochs_trained": 20
 }

@@ -61,3 +61,46 @@ def test_rollback_version(tmp_path):
     assert pointer_file.exists()
     data = json.loads(pointer_file.read_text(encoding="utf-8"))
     assert data["active_version"] == "v1"
+
+
+def test_export_classifier_misses(tmp_path):
+    import sqlite3
+    from scripts.export_review_labels_for_retraining import export_classifier_misses
+
+    db_path = tmp_path / "test_review_queue.db"
+    conn = sqlite3.connect(str(db_path))
+    cursor = conn.cursor()
+    cursor.execute(
+        """
+        CREATE TABLE review_queue (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            invoice_source_ref TEXT,
+            predicted_label TEXT,
+            resolved_label TEXT,
+            confidence_or_similarity REAL,
+            crop_image_path TEXT,
+            status TEXT,
+            resolution_type TEXT,
+            resolved_at TEXT,
+            created_at TEXT
+        )
+        """
+    )
+    cursor.execute(
+        """
+        INSERT INTO review_queue (invoice_source_ref, predicted_label, resolved_label, confidence_or_similarity, crop_image_path, status, resolution_type, resolved_at, created_at)
+        VALUES ('inv_1.png', 'Nike', 'Adidas', 0.42, 'crop_1.png', 'resolved', 'classifier_missed_trained_class', '2026-10-22T00:00:00Z', '2026-10-22T00:00:00Z')
+        """
+    )
+    conn.commit()
+    conn.close()
+
+    out_json = tmp_path / "export.json"
+    misses = export_classifier_misses(db_path=db_path, output_path=out_json)
+
+    assert len(misses) == 1
+    assert misses[0]["resolved_label"] == "Adidas"
+    assert out_json.exists()
+    export_content = json.loads(out_json.read_text(encoding="utf-8"))
+    assert export_content["total_classifier_misses"] == 1
+
