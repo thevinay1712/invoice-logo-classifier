@@ -8,8 +8,8 @@ import uuid
 import zipfile
 from contextlib import asynccontextmanager
 from pathlib import Path
-
 from typing import Any
+
 from fastapi import (
     Depends,
     FastAPI,
@@ -21,7 +21,7 @@ from fastapi import (
     status,
 )
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, Response, StreamingResponse
+from fastapi.responses import FileResponse, Response
 from fastapi.security import APIKeyHeader
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -373,7 +373,7 @@ async def classify_batch_endpoint(files: list[UploadFile] = File(...)):  # noqa:
                     conf_pct = f"{data['confidence_or_similarity'] * 100:.2f}"
                     status_str = data["status"]
                     source_str = data["match_source"]
-                except Exception as err:
+                except Exception as err:  # noqa: BLE001
                     logger.error(f"Failed to process batch invoice file '{filename}': {err}")
                     item = BatchClassificationItem(
                         filename=filename,
@@ -455,7 +455,7 @@ async def classify_batch_endpoint(files: list[UploadFile] = File(...)):  # noqa:
         (BATCH_CACHE_DIR / "latest.zip").write_bytes(zip_bytes)
         (BATCH_CACHE_DIR / f"{batch_id}.csv").write_bytes(csv_bytes)
         (BATCH_CACHE_DIR / "latest.csv").write_bytes(csv_bytes)
-    except Exception as io_err:
+    except Exception as io_err:  # noqa: BLE001
         logger.warning(f"Could not persist batch to disk: {io_err}")
 
     return BatchClassificationResponse(
@@ -559,7 +559,7 @@ async def export_batch_zip_endpoint(files: list[UploadFile] = File(...)):  # noq
                     conf_pct = f"{data['confidence_or_similarity'] * 100:.2f}"
                     status_str = data["status"]
                     source_str = data["match_source"]
-                except Exception as err:
+                except Exception as err:  # noqa: BLE001
                     logger.error(f"Zip packaging error on '{filename}': {err}")
                     company_folder = "Processing_Error"
                     conf_pct = "0.00"
@@ -651,13 +651,14 @@ def resolve_review_item(id: int, request: ResolveReviewRequest):
             files_raw = b_data.get("files_raw", [])
             updated = False
             for entry in files_raw:
-                if entry["company"] in ("Needs_Review_Unknown", "Needs Review / Unknown"):
-                    if not ref_name or entry["filename"] == ref_name or len(files_raw) == 1:
-                        entry["company"] = request.label
-                        entry["status"] = "matched_gallery"
-                        entry["source"] = "gallery"
-                        entry["confidence"] = "100.00"
-                        updated = True
+                if entry["company"] in ("Needs_Review_Unknown", "Needs Review / Unknown") and (
+                    not ref_name or entry["filename"] == ref_name or len(files_raw) == 1
+                ):
+                    entry["company"] = request.label
+                    entry["status"] = "matched_gallery"
+                    entry["source"] = "gallery"
+                    entry["confidence"] = "100.00"
+                    updated = True
             if updated:
                 zbuf = io.BytesIO()
                 mrows = [["Filename", "Identified Company", "Confidence (%)", "Status", "Match Source", "Processed Timestamp"]]
@@ -683,9 +684,9 @@ def resolve_review_item(id: int, request: ResolveReviewRequest):
                     (BATCH_CACHE_DIR / "latest.zip").write_bytes(b_data["zip_bytes"])
                     (BATCH_CACHE_DIR / f"{b_id}.csv").write_bytes(b_data["csv_bytes"])
                     (BATCH_CACHE_DIR / "latest.csv").write_bytes(b_data["csv_bytes"])
-                except Exception:
+                except Exception:  # noqa: BLE001, S110
                     pass
-    except Exception as upd_err:
+    except Exception as upd_err:  # noqa: BLE001
         logger.warning(f"Failed to update batch zip with resolved label: {upd_err}")
 
     return ReviewItemResponse(

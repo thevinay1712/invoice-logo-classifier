@@ -305,7 +305,7 @@ class ReviewQueueManager:
             if crop_path.exists():
                 try:
                     crop_path.unlink()
-                except Exception as err:
+                except Exception as err:  # noqa: BLE001
                     logger.warning(f"Failed to remove crop image '{crop_path}': {err}")
 
         logger.info(f"Deleted review item #{review_item_id}.")

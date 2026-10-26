@@ -22,8 +22,6 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from PIL import Image, ImageDraw, ImageFont
 
-from invoice_logo_classifier.augmentation.clutter import generate_clutter_dataset
-
 # Set seed for reproducible dataset builds
 random.seed(42)
 
@@ -84,7 +82,7 @@ def get_font(size=28, bold=True):
     for f in font_names:
         try:
             return ImageFont.truetype(f, size)
-        except Exception:
+        except (OSError, RuntimeError):
             continue
     return ImageFont.load_default()
 
@@ -519,8 +517,8 @@ def main():
     print(" GENERATING AUTHENTIC BRAND LOGO & INVOICE DOCUMENT DATASET")
     print("=" * 70)
     print(f" Target Classes : {len(CLASSES)} authentic commercial brands")
-    print(f" Train Split    : 150 crops / class")
-    print(f" Val Split      : 30 crops / class")
+    print(" Train Split    : 150 crops / class")
+    print(" Val Split      : 30 crops / class")
     print("=" * 70)
 
     num_train_per_class = 150

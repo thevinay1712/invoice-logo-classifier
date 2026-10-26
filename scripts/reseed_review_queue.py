@@ -1,8 +1,8 @@
 """Script to clean and re-populate the Review Queue with realistic pending vendor logo crops."""
 
 import sqlite3
-import shutil
 from pathlib import Path
+
 from PIL import Image, ImageDraw
 
 REVIEW_DIR = Path("review_queue")

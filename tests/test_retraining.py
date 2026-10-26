@@ -65,6 +65,7 @@ def test_rollback_version(tmp_path):
 
 def test_export_classifier_misses(tmp_path):
     import sqlite3
+
     from scripts.export_review_labels_for_retraining import export_classifier_misses
 
     db_path = tmp_path / "test_review_queue.db"

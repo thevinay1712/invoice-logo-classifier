@@ -10,6 +10,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 import logging
+
 from invoice_logo_classifier.config import settings
 from invoice_logo_classifier.training import train_model
 

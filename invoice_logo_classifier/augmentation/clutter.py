@@ -8,10 +8,10 @@ Generates realistic invoice document elements that are not vendor logos:
 - Document processing rubber stamps (PAID, RECEIVED, APPROVED)
 """
 
-import math
 import random
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFont
+
+from PIL import Image, ImageDraw
 
 
 def _draw_address_block(draw: ImageDraw.ImageDraw, w: int, h: int) -> None:

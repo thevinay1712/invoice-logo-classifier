@@ -9,7 +9,7 @@ import json
 import logging
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 # Ensure project root is in sys.path
@@ -17,10 +17,9 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-import numpy as np
 import torch
-import torch.nn as nn
 from sklearn.metrics import classification_report
+from torch import nn
 from torch.utils.data import DataLoader, Subset
 from torchvision.datasets import ImageFolder
 from torchvision.models import ResNet50_Weights, resnet50
@@ -225,7 +224,7 @@ def main():
         "backbone_used": "resnet50",
         "num_classes": num_classes,
         "class_list": class_list,
-        "training_date": datetime.now(timezone.utc).isoformat(),
+        "training_date": datetime.now(UTC).isoformat(),
         "best_val_acc": round(best_val_acc, 2),
         "final_val_acc": round(val_acc, 2),
         "image_size": [224, 224],

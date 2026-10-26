@@ -110,7 +110,7 @@ def test_classify_clutter_candidate_rejection(tmp_path):
     service.class_list = ["_Non_Logo_Clutter"] * len(service.class_list)
 
     clutter_img = Image.new("RGB", (100, 100), color=(250, 250, 250))
-    label, score, status, source = service.classify_crop(clutter_img)
+    _, _, status, source = service.classify_crop(clutter_img)
 
     assert status == "unknown"
     assert source == "none"

@@ -289,8 +289,7 @@ def train_model(
             writer.writerow([epoch, phase, f"{train_loss:.4f}", f"{train_acc:.2f}", f"{val_loss:.4f}", f"{val_acc:.2f}", f"{current_lr:.6f}"])
 
         # Track best val accuracy
-        if val_acc >= best_val_acc:
-            best_val_acc = val_acc
+        best_val_acc = max(val_acc, best_val_acc)
 
         # Early stopping: monitor val_loss improvement (more robust than val_acc)
         if val_loss < best_val_loss - 1e-4:

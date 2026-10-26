@@ -2,6 +2,7 @@
 
 import sys
 from pathlib import Path
+
 from PIL import Image, ImageDraw
 
 # Ensure project root is in sys.path
@@ -9,8 +10,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-import numpy as np
 import torch
+
 from invoice_logo_classifier.augmentation import get_eval_transforms
 from invoice_logo_classifier.config import settings
 from invoice_logo_classifier.gallery import VendorGallery
